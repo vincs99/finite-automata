@@ -11,11 +11,7 @@ data DFA = DFA { states :: [State]
                 ,  start:: State
                 , acceptstate:: [State]}
 
-evaluate:: DFA -> String -> Bool
-evaluate df st = (stateArr (start df) st) `elem` acceptstate df where
-    stateArr:: State -> String -> State
-    stateArr q [] = q
-    stateArr q (x:xs) = stateArr (delta df q x) xs 
+
 
 -- Toy example: accepts all strings starting with 0
 zeroStart:: DFA
