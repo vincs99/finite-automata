@@ -2,22 +2,19 @@
 \section{Wrapping it up in an exectuable}
 \label{sec:Main}
 
-We will now use the library form Section \ref{sec:Basics} in a program.
+We will now use the library form Section \ref{sec:DFA} in a program.
 
 \begin{code}
 module Main where
 
-import Basics
+import DFA
+import Data.List()
+import Data.Maybe
 
-main :: IO ()
-main = do
-  putStrLn "Hello!"
-  print somenumbers
-  print (map funnyfunction somenumbers)
-  myrandomnumbers <- randomnumbers
-  print myrandomnumbers
-  print (map funnyfunction myrandomnumbers)
-  putStrLn "GoodBye"
+main:: IO ()
+main = undefined 
+
+
 \end{code}
 
 The output of the program is something like this:
