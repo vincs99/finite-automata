@@ -64,3 +64,5 @@ zeroStartNF = NFA [0,1,2, 3] ['0', '1'] deltazeroNF 0 [1] where
      | st == 3 = [3]
      | otherwise = [-1]
 
+     -- this is a modification
+
