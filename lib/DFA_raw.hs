@@ -1,7 +1,7 @@
 module DFA_raw where
 
 import Data.List
-import Data.Maybe()
+import System.Random
 
 type State = Int
 type Symbol = Char
@@ -106,3 +106,29 @@ zeroStartENF = ENFA [0,1,2, 3] ['0', '1'] deltazeroNF [(0,1), (2,3)] 0 [1] where
      | st == 3 = [3]
      | otherwise = [-1]
 
+
+data RegExp = Epsilon | R [Symbol] | Union RegExp RegExp | Star RegExp | Con RegExp RegExp
+
+instance Show RegExp where
+  show Epsilon = "e"
+  show (R xs) = show xs
+  show (Union r1 r2) = show r1 ++ " u " ++ show r2
+  show (Star r) = "(" ++  show r ++ ")*"
+  show (Con r1 r2) = show r1 ++ show r2
+
+
+generateWord :: RegExp -> IO String
+generateWord Epsilon = pure ""
+generateWord (R xs) = pure xs
+generateWord (Union r1 r2) = do
+  i <- getStdRandom (randomR (0,1::Int))
+  [generateWord r1, generateWord r2] !! i
+generateWord (Con r1 r2) = do
+  one <- generateWord r1
+  two <- generateWord r2
+  return (one ++ two)
+generateWord (Star r) = do
+  i <- getStdRandom (randomR (0,1::Int))
+  [generateWord Epsilon, generateWord (Con r (Star r))] !! i
+  
+  
