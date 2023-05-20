@@ -148,7 +148,10 @@ qc dfa ex n =  do
   s <- generateWord ex
   if evaluate dfa s
     then qc dfa ex (n-1)
-    else print ("the DFA rejected " ++ s) 
+    else 
+      if s == "" 
+      then print "The DFA rejected the empty string"
+      else print ("the DFA rejected " ++ s) 
 
 
 -- More toys
