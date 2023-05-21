@@ -165,6 +165,54 @@ qc4 :: IO ()
 qc4 = qc zeroStart (Star (Union (R "a") (R "1"))) 100
 
 
+
+-- RegExp to ENFA
+regExpToENFA :: RegExp -> ENFA
+regExpToENFA Epsilon = ENFA [0] [] (\_ _ -> []) [] 0 [0]
+regExpToENFA (R xs) = ENFA [0..length xs -1] (nub xs) delta [] 0 [length xs -1] where
+  delta symbol state | xs !! state == symbol = [state + 1]
+                     | otherwise = []
+regExpToENFA (Union r1 r2) = regExpToENFA r1 `unionENFA` makeDisjoint (regExpToENFA r1) (regExpToENFA r2)
+regExpToENFA (Star r) = starENFA (regExpToENFA r)
+regExpToENFA (Con r1 r2) = regExpToENFA r1 `concatENFA` makeDisjoint (regExpToENFA r1) (regExpToENFA r2)
+regExpToENFA (Plus r) = regExpToENFA r `concatENFA` starENFA (makeDisjoint (regExpToENFA r) (regExpToENFA r))
+
+
+-- function that takes two ENFAs and outputs a relabeling of the second ENFA such that the states of both become disjoint
+makeDisjoint :: ENFA -> ENFA -> ENFA
+makeDisjoint n1 n2 = ENFA states alphabet delta epT start accept where
+  add = maximum (statesENF n1)
+  states = map (+ add) (statesENF n2)
+  alphabet = alpabetENF n2
+  delta sym state = deltaENF n2 sym (state + add)
+  epT = [(s + add, t + add) | (s,t) <- epTrans n2 ] 
+  start = start + add
+  accept = map (+ add) (acceptstateENF n2)
+
+
+unionENFA :: ENFA -> ENFA -> ENFA -- Use only if states are disjoint
+unionENFA n1 n2 = ENFA states alphabet delta epT start accept where
+  states = -1 : statesENF n1 ++ statesENF n2
+  alphabet = alpabetENF n1 `union` alpabetENF n2
+  delta sym st = deltaENF n1 sym st ++ deltaENF n2 sym st
+  epT = epTrans n1 ++ epTrans n2 ++ [(-1, startENF n1), (-1, startENF n2)]
+  start = -1
+  accept = acceptstateENF n1 ++ acceptstateENF n2
+
+starENFA :: ENFA -> ENFA
+starENFA n = ENFA (statesENF n) (alpabetENF n) (deltaENF n) ep (startENF n) (acceptstateENF n)  where
+  ep = epTrans n ++ [(s, startENF n) | s <- acceptstateENF n]
+
+concatENFA :: ENFA -> ENFA -> ENFA -- Use only if states are disjoint again
+concatENFA n1 n2 = ENFA states alphabet delta epT start accept where
+  states = statesENF n1 ++ statesENF n2
+  alphabet = alpabetENF n1 `union` alpabetENF n2
+  delta sym st = deltaENF n1 sym st ++ deltaENF n2 sym st
+  epT = epTrans n1 ++ epTrans n2 ++ [(s, startENF n2) | s <- acceptstateENF n1]
+  start = startENF n1
+  accept = acceptstateENF n2
+
+
   -- Powerset construction
 
 transNtoD:: NFA -> DFA
