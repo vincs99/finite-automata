@@ -5,29 +5,29 @@ import System.Random
 
 type State = Int
 type Symbol = Char
-data DFA = DFA { states :: [State]
+data DFA = DFA { states :: [[State]] -- For ease with subset construct, represent by set of states.
                 , alpabet:: [Symbol]
-                , delta :: Symbol -> State -> State
-                ,  start:: State
-                , acceptstate:: [State]}
+                , delta :: Symbol -> [State] -> [State]
+                ,  start:: [State]
+                , acceptstate:: [[State]]}
 
 evaluate:: DFA -> String -> Bool
 evaluate df st = and (map ((flip $ elem) (alpabet df)) st) && -- captures that all element of string in alphabet
                 (stateArr (start df) st) `elem` acceptstate df where 
-                    stateArr:: State -> String -> State -- recursively go to state at end of string
+                    stateArr:: [State] -> String -> [State] -- recursively go to state at end of string
                     stateArr q [] = q
                     stateArr q (x:xs) = stateArr (delta df x q) xs
 
 -- Toy example: accepts all strings starting with 0
 zeroStart:: DFA
-zeroStart = DFA [0,1,2] ['0', '1'] deltazero 0 [1] where
-    deltazero:: Symbol -> State -> State
+zeroStart = DFA [[0],[1],[2]] ['0', '1'] deltazero [0] [[1]] where
+    deltazero:: Symbol -> [State] -> [State]
     deltazero char st
-     | st == 0 && char == '0' = 1
-     | st == 0 && char == '1' = 2
-     | st == 1 = 1
-     | st == 2 = 2
-     | otherwise = -1
+     | st == [0] && char == '0' = [1]
+     | st == [0] && char == '1' = [2]
+     | st == [1] = [1]
+     | st == [2] = [2]
+     | otherwise = [-1]
 
 data NFA = NFA { statesNF :: [State]
                 , alpabetNF:: [Symbol]
@@ -161,7 +161,14 @@ qc2 :: IO ()
 qc2 = qc zeroStart (Plus (Con (R "0") (R "1") )) 100
 qc3 :: IO ()
 qc3 =  qc zeroStart (Star (Con (R "0") (R "1") )) 100
+qc4 :: IO ()
+qc4 = qc zeroStart (Star (Union (R "a") (R "1"))) 100
 
 
-  
-  
+  -- Powerset construction
+
+transNtoD:: NFA -> DFA
+transNtoD (NFA sts alph del strt ac) = 
+  DFA (subsequences sts) alph del' [strt] [st | st <- subsequences sts, not ((intersect st ac) == [])] where
+    del':: Symbol -> [State] -> [State]
+    del' sy ls = unionL [del sy l | l <- ls] 
