@@ -7,9 +7,9 @@ We will now use the library form Section \ref{sec:DFA} in a program.
 \begin{code}
 module Main where
 
-import DFA
+import DFA()
 import Data.List()
-import Data.Maybe
+import Data.Maybe()
 
 main:: IO ()
 main = undefined 
