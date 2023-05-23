@@ -12,7 +12,7 @@ import Data.List()
 import Data.Maybe()
 
 main:: IO ()
-main = undefined 
+main = print "Hallo" 
 
 
 \end{code}

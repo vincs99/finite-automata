@@ -6,7 +6,7 @@ cradle:
     - path: "./exec/Main.lhs"
       component: "finite-automata:exe:myprogram"
 
-    - path: "./exec/Paths_report.hs"
+    - path: "./exec/Paths_finite-automata.hs"
       component: "finite-automata:exe:myprogram"
 
     - path: "./test"

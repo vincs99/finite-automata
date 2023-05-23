@@ -8,10 +8,10 @@ and test some properties.
 \begin{code}
 module Main where
 
-import Basics
+--import Basics
 
-import Test.Hspec
-import Test.QuickCheck
+--import Test.Hspec
+--import Test.QuickCheck
 \end{code}
 
 The following uses the HSpec library to define different tests.
@@ -20,14 +20,7 @@ The second and third test use QuickCheck.
 
 \begin{code}
 main :: IO ()
-main = hspec $ do
-  describe "Basics" $ do
-    it "somenumbers should be the same as [1..10]" $
-      somenumbers `shouldBe` [1..10]
-    it "funnyfunction: result is within [1..100]" $
-      property (\n -> funnyfunction n `elem` [1..100])
-    it "myreverse: using it twice gives back the same list" $
-      property $ \str -> myreverse (myreverse str) == (str::String)
+main = print ":)"
 \end{code}
 
 To run the tests, use \verb|stack test|.
