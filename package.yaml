@@ -27,6 +27,6 @@ tests:
     main: simpletests.lhs
     source-dirs: test
     dependencies:
-      - report
+      - finita-automata
       - QuickCheck
       - hspec
