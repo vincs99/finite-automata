@@ -231,5 +231,7 @@ concatENFA n1 n2 = ENFA states alphabet delta epT start accept where
   start = startENF n1
   accept = acceptstateENF n2
 
+  --an alteration
+
 
  
