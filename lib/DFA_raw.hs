@@ -6,14 +6,14 @@ import System.Random
 type State = Int
 type Symbol = Char
 data DFA = DFA { states :: [[State]] -- For ease with subset construct, represent by set of states.
-                , alpabet:: [Symbol]
+                , alphabet:: [Symbol]
                 , delta :: Symbol -> [State] -> [State]
                 ,  start:: [State]
                 , acceptstate:: [[State]]}
 
 evaluate:: DFA -> String -> Bool
-evaluate df st = and (map ((flip $ elem) (alpabet df)) st) && -- captures that all element of string in alphabet
-                (stateArr (start df) st) `elem` acceptstate df where 
+evaluate df st = all (`elem` alphabet df) st && -- captures that all element of string in alphabet
+                stateArr (start df) st `elem` acceptstate df where 
                     stateArr:: [State] -> String -> [State] -- recursively go to state at end of string
                     stateArr q [] = q
                     stateArr q (x:xs) = stateArr (delta df x q) xs
@@ -30,20 +30,20 @@ zeroStart = DFA [[0],[1],[2]] ['0', '1'] deltazero [0] [[1]] where
      | otherwise = [-1]
 
 data NFA = NFA { statesNF :: [State]
-                , alpabetNF:: [Symbol]
+                , alphabetNF:: [Symbol]
                 , deltaNF :: Symbol -> State -> [State]
                 , startNF:: State
                 , acceptstateNF:: [State]}
 
 evaluateNF:: NFA -> String -> Bool
-evaluateNF nf st = and (map ((flip $ elem) (alpabetNF nf)) st) && -- captures elements of string in alphabet
-             or (map ((flip $ elem) (acceptstateNF nf)) (stateArrNF' ([startNF nf]) st))  where
+evaluateNF nf st = all (`elem` alphabetNF nf) st && -- captures elements of string in alphabet
+             any (`elem` acceptstateNF nf) (stateArrNF' [startNF nf] st)  where
                 stateArrNF':: [State] -> String -> [State]  
                 stateArrNF' qs [] = qs
                 stateArrNF' [] _ = []
                 stateArrNF' [q] (x:xs) | q == -1 = []
                                        | otherwise = stateArrNF' (deltaNF nf x q) xs --recursion on string
-                stateArrNF' (q:qs) (x:xs) = union (stateArrNF' [q] (x:xs)) (stateArrNF' qs (x:xs)) --recursion on statespace
+                stateArrNF' (q:qs) (x:xs) = stateArrNF' [q] (x : xs) `union` stateArrNF' qs (x : xs) --recursion on statespace
 
 
 -- Toy example: accepts all strings starting with 0
@@ -59,11 +59,11 @@ zeroStartNF = NFA [0,1,2, 3] ['0', '1'] deltazeroNF 0 [1] where
      | otherwise = [-1]
 
 unionL:: Eq a => [[a]] -> [a]
-unionL [] = []
-unionL (li:lis) = union li (unionL lis)
+unionL = foldr union []
+
 
 data ENFA = ENFA { statesENF :: [State]
-                , alpabetENF:: [Symbol]
+                , alphabetENF:: [Symbol]
                 , deltaENF :: Symbol -> State -> [State]
                 , epTrans:: [(State, State)]
                 , startENF:: State
@@ -81,18 +81,20 @@ trClose closure
 refClose:: Eq a => [a] -> [(a,a)] -> [(a,a)]
 refClose as ps = nub (ps ++ [(x,x) | x <- as])
 
+rtClose:: ENFA -> State -> [State]
+rtClose nf q = [p | p <- statesENF nf , (q, p) `elem` trClose rcl ] where
+                                            rcl = refClose (statesENF nf) (epTrans nf)
+
 
 evaluateENF:: ENFA -> String -> Bool
-evaluateENF nf st = and (map ((flip $ elem) (alpabetENF nf)) st) && -- captures elements of string in alphabet
-             or (map ((flip $ elem) (acceptstateENF nf)) (stateArrENF' ([startENF nf]) st))  where
+evaluateENF nf st = all (`elem` alphabetENF nf) st && -- captures elements of string in alphabet
+             any (`elem` acceptstateENF nf) (stateArrENF' [startENF nf] st)  where
                 stateArrENF':: [State] -> String -> [State]  
                 stateArrENF' qs [] = qs
                 stateArrENF' [] _ = []
                 stateArrENF' [q] (x:xs) | q == -1 = []
-                                        | otherwise = stateArrENF' (unionL (map (deltaENF nf x) lis)) xs where
-                                          lis = [p | p <- statesENF nf , (q, p) `elem` (trClose (rcl)) ] where
-                                            rcl = refClose (statesENF nf) (epTrans nf) 
-                stateArrENF' (q:qs) (x:xs) = union (stateArrENF' [q] (x:xs)) (stateArrENF' qs (x:xs)) --recursion on statespace
+                                        | otherwise = stateArrENF' (unionL (map (deltaENF nf x) (rtClose nf q))) xs
+                stateArrENF' (q:qs) (x:xs) = stateArrENF' [q] (x : xs) `union` stateArrENF' qs (x : xs) --recursion on statespace
 
 -- Toy example: accepts all strings starting with 0
 zeroStartENF:: ENFA
@@ -105,6 +107,23 @@ zeroStartENF = ENFA [0,1,2, 3] ['0', '1'] deltazeroNF [(0,1), (2,3)] 0 [1] where
      | st == 2 = [2, 3]
      | st == 3 = [3]
      | otherwise = [-1]
+
+ -- Powerset construction
+
+transNtoD:: NFA -> DFA
+transNtoD (NFA sts alph del strt ac) = 
+  DFA (subsequences sts) alph del' [strt] [st | st <- subsequences sts,  intersect st ac /= []] where
+    del':: Symbol -> [State] -> [State]
+    del' sy ls = unionL [del sy l | l <- ls] 
+
+transENtoD:: ENFA -> DFA
+transENtoD (ENFA sts alph del eps strt ac) = let nf = ENFA sts alph del eps strt ac in 
+  DFA (subsequences sts) alph del' (rtClose nf strt) [st | st <- subsequences sts,  intersect st ac /= []] where
+    del':: Symbol -> [State] -> [State]
+    del' sy ls = let nf = ENFA sts alph del eps strt ac in  unionL (map (rtClose nf) lis) where
+                                                              lis = unionL [del sy l | l <- ls] 
+
+-- Regexp implementation
 
 
 data RegExp = Epsilon | R [Symbol] | Union RegExp RegExp | Star RegExp | Con RegExp RegExp | Plus RegExp
@@ -183,7 +202,7 @@ makeDisjoint :: ENFA -> ENFA -> ENFA
 makeDisjoint n1 n2 = ENFA states alphabet delta epT start accept where
   add = maximum (statesENF n1)
   states = map (+ add) (statesENF n2)
-  alphabet = alpabetENF n2
+  alphabet = alphabetENF n2
   delta sym state = deltaENF n2 sym (state + add)
   epT = [(s + add, t + add) | (s,t) <- epTrans n2 ] 
   start = start + add
@@ -193,30 +212,24 @@ makeDisjoint n1 n2 = ENFA states alphabet delta epT start accept where
 unionENFA :: ENFA -> ENFA -> ENFA -- Use only if states are disjoint
 unionENFA n1 n2 = ENFA states alphabet delta epT start accept where
   states = -1 : statesENF n1 ++ statesENF n2
-  alphabet = alpabetENF n1 `union` alpabetENF n2
+  alphabet = alphabetENF n1 `union` alphabetENF n2
   delta sym st = deltaENF n1 sym st ++ deltaENF n2 sym st
   epT = epTrans n1 ++ epTrans n2 ++ [(-1, startENF n1), (-1, startENF n2)]
   start = -1
   accept = acceptstateENF n1 ++ acceptstateENF n2
 
 starENFA :: ENFA -> ENFA
-starENFA n = ENFA (statesENF n) (alpabetENF n) (deltaENF n) ep (startENF n) (acceptstateENF n)  where
+starENFA n = ENFA (statesENF n) (alphabetENF n) (deltaENF n) ep (startENF n) (acceptstateENF n)  where
   ep = epTrans n ++ [(s, startENF n) | s <- acceptstateENF n]
 
 concatENFA :: ENFA -> ENFA -> ENFA -- Use only if states are disjoint again
 concatENFA n1 n2 = ENFA states alphabet delta epT start accept where
   states = statesENF n1 ++ statesENF n2
-  alphabet = alpabetENF n1 `union` alpabetENF n2
+  alphabet = alphabetENF n1 `union` alphabetENF n2
   delta sym st = deltaENF n1 sym st ++ deltaENF n2 sym st
   epT = epTrans n1 ++ epTrans n2 ++ [(s, startENF n2) | s <- acceptstateENF n1]
   start = startENF n1
   accept = acceptstateENF n2
 
 
-  -- Powerset construction
-
-transNtoD:: NFA -> DFA
-transNtoD (NFA sts alph del strt ac) = 
-  DFA (subsequences sts) alph del' [strt] [st | st <- subsequences sts, not ((intersect st ac) == [])] where
-    del':: Symbol -> [State] -> [State]
-    del' sy ls = unionL [del sy l | l <- ls] 
+ 
