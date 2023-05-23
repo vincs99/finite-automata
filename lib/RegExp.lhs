@@ -2,7 +2,7 @@
 Here we implement regular expressions and a toolset to generate words that the regexp accepts.
 
 \begin{code}
-module Regexp where
+module RegExp where
 
 import System.Random
 import DFA

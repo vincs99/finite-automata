@@ -1,8 +1,8 @@
-name: report
+name: finite-automata
 version: 0.1.0.0
-synopsis: My Haskell project
-description: See report.pdf
-maintainer: My Name <my.email@example.com>
+synopsis: Finite Automata and Regular Expressions
+description: See finite-automata.tex
+maintainer: Vince Velkey <vince.velkey@student.uva.nl>
 category: Logic
 
 ghc-options: -Wall
@@ -20,7 +20,7 @@ executables:
     main: Main.lhs
     source-dirs: exec
     dependencies:
-      - report
+      - finite-automata
 
 tests:
   simpletests:
