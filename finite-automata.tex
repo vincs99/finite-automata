@@ -11,10 +11,7 @@
 \maketitle
 
 \begin{abstract}
-We give a toy example of a report in \emph{literate programming} style.
-The main advantage of this is that source code and documentation can
-be written and presented next to each other.
-We use the listings package to typeset Haskell source code nicely.
+We implement finite state automata, both deterministic and nondeterministic. We also implement regular expressions and generate words from their language. Finally, we implement transitions between our objects and run several tests to verify our implementation. 
 \end{abstract}
 
 \vfill
@@ -25,19 +22,18 @@ We use the listings package to typeset Haskell source code nicely.
 
 % We include one file for each section. The ones containing code should
 % be called something.lhs and also mentioned in the .cabal file.
-
+\input{Introduction.tex}
 \input{lib/DFA.lhs}
 \input{lib/NFA.lhs}
 \input{lib/ENFA.lhs}
 \input{lib/RegExp.lhs}
 \input{lib/Transitions.lhs}
 
-\input{exec/Main.lhs}
+%\input{exec/Main.lhs}
 
 \input{test/simpletests.lhs}
 
 \input{Conclusion.tex}
-
 \addcontentsline{toc}{section}{Bibliography}
 \bibliographystyle{alpha}
 \bibliography{references.bib}

@@ -2,7 +2,8 @@
 
 Here we modify our implementation of NFA-s to account for epsilon transitions. This requires 
 some technical apparatus. First we give the type structure and 
-define some helper functions to calculate $\epsilon$-closure of states.
+define some helper functions to calculate $\epsilon$-closure of states. For this we use the blog answer
+\cite{CS:30073}.
 
 \begin{code}
 module ENFA where
@@ -34,8 +35,7 @@ rtClose nf q = [p | p <- statesENF nf , (q, p) `elem` trClose rcl ] where
                                             rcl = refClose (statesENF nf) (epTrans nf)
 \end{code}
 
-We implement a basic evaluation function that upon input from the string, evaluates if the string is in the 
-language.
+Finally, we modify the the evaluation function. 
 
 \begin{code}
 unionL:: Eq a => [[a]] -> [a]

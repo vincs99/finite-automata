@@ -1,6 +1,6 @@
 \section{NFA Implementation}\label{sec:NFA}
 
-This describes our implementation of Non-deterministic Finite State Automata. As in the definition, an NFA consists
+This describes our implementation of Nondeterministic Finite State Automata. As in the definition, an NFA consists
 of a tuple $(Q, \Sigma, \delta, q_{start}, A)$ representing the set of states, the alphabet, the transition 
 function, the start state and the accept states. 
 
@@ -17,8 +17,7 @@ data NFA = NFA { statesNF :: [State]
                 , acceptstateNF:: [State]}
 \end{code}
 
-We implement a basic evaluation function that upon input from the string, evaluates if the string is in the 
-language.
+We also implement a similar, but more complicated transition function suitable for NFA-s.
 
 \begin{code}
 evaluateNF:: NFA -> String -> Bool

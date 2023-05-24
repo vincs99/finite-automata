@@ -1,7 +1,7 @@
 \section{Transition functions}\label{sec:Trans}
 
 Here we implement several transition functions between objects.
-Powerset construction: 
+First the powerset construction between NFA-s and DFA-s.
 
 \begin{code}
 module Transitions where
@@ -19,7 +19,7 @@ transNtoD (NFA sts alph del strt ac) =
     del' sy ls = unionL [del sy l | l <- ls] 
 \end{code}
 
-Powerset construction: 
+We extend the powerset construction for $\epsilon$-NFA-s.
 
 \begin{code}
 transENtoD:: ENFA -> DFA
