@@ -14,9 +14,6 @@ module Main where
 --import Test.QuickCheck
 \end{code}
 
-%The following uses the HSpec library to define different tests.
-Note that the first test is a specific test with fixed inputs.
-The second and third test use QuickCheck.
 
 \begin{code}
 main :: IO ()
