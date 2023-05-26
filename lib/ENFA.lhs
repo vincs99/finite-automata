@@ -11,12 +11,12 @@ module ENFA where
 import Data.List
 import Data.Maybe()
 import DFA
-data ENFA = ENFA { statesENF :: [State]
+data ENFA a = ENFA { statesENF :: [a]
                 , alphabetENF:: [Symbol]
-                , deltaENF :: Symbol -> State -> [State]
-                , epTrans:: [(State, State)]
-                , startENF:: State
-                , acceptstateENF:: [State]}
+                , deltaENF :: Symbol -> a -> [a]
+                , epTrans:: [(a, a)]
+                , startENF:: a
+                , acceptstateENF:: [a]}
 
 -- Taken from https://stackoverflow.com/questions/19212558/transitive-closure-from-a-list-using-haskell
 trClose :: Eq a => [(a, a)] -> [(a, a)]
@@ -30,7 +30,7 @@ trClose closure
 refClose:: Eq a => [a] -> [(a,a)] -> [(a,a)]
 refClose as ps = nub (ps ++ [(x,x) | x <- as])
 
-rtClose:: ENFA -> State -> [State]
+rtClose:: Eq a => ENFA a -> a -> [a]
 rtClose nf q = [p | p <- statesENF nf , (q, p) `elem` trClose rcl ] where
                                             rcl = refClose (statesENF nf) (epTrans nf)
 \end{code}
@@ -41,14 +41,12 @@ Finally, we modify the the evaluation function.
 unionL:: Eq a => [[a]] -> [a]
 unionL = foldr union []
 
-evaluateENF:: ENFA -> String -> Bool
+evaluateENF:: Eq a => ENFA a -> String -> Bool
 evaluateENF nf st = all (`elem` alphabetENF nf) st && -- captures elements of string in alphabet
              any (`elem` acceptstateENF nf) (stateArrENF' [startENF nf] st)  where
-                stateArrENF':: [State] -> String -> [State]  
                 stateArrENF' qs [] = qs
                 stateArrENF' [] _ = []
-                stateArrENF' [q] (x:xs) | q == -1 = []
-                                        | otherwise = stateArrENF' (unionL (map (deltaENF nf x) (rtClose nf q))) xs
+                stateArrENF' [q] (x:xs)  = stateArrENF' (unionL (map (deltaENF nf x) (rtClose nf q))) xs
                 stateArrENF' (q:qs) (x:xs) = stateArrENF' [q] (x : xs) `union` stateArrENF' qs (x : xs) --recursion on statespace
 \end{code}
 

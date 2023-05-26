@@ -12,9 +12,9 @@ import Transitions()
 
 
 -- Toy example: accepts all strings starting with 0
-zeroStartNF:: NFA
+zeroStartNF:: NFA Int
 zeroStartNF = NFA [0,1,2, 3] ['0', '1'] deltazeroNF 0 [1] where
-    deltazeroNF:: Symbol-> State -> [State]
+    deltazeroNF:: Symbol-> Int -> [Int]
     deltazeroNF char st
      | st == 0 && char == '0' = [1]
      | st == 0 && char == '1' = [2, 3]
@@ -44,7 +44,7 @@ qc4 = qc zeroStart (Star (Union (R "a") (R "1"))) 100
 
 
 -- RegExp to ENFA
-regExpToENFA :: RegExp -> ENFA
+regExpToENFA :: RegExp -> ENFA Int
 regExpToENFA Epsilon = ENFA [0] [] (\_ _ -> []) [] 0 [0]
 regExpToENFA (R xs) = ENFA [0..length xs -1] (nub xs) delta [] 0 [length xs -1] where
   delta symbol state | xs !! state == symbol = [state + 1]
@@ -56,7 +56,7 @@ regExpToENFA (Plus r) = regExpToENFA r `concatENFA` starENFA (makeDisjoint (regE
 
 
 -- function that takes two ENFAs and outputs a relabeling of the second ENFA such that the states of both become disjoint
-makeDisjoint :: ENFA -> ENFA -> ENFA
+makeDisjoint :: ENFA Int -> ENFA Int -> ENFA Int
 makeDisjoint n1 n2 = ENFA states alphabet delta epT start accept where
   add = maximum (statesENF n1)
   states = map (+ add) (statesENF n2)
@@ -67,7 +67,7 @@ makeDisjoint n1 n2 = ENFA states alphabet delta epT start accept where
   accept = map (+ add) (acceptstateENF n2)
 
 
-unionENFA :: ENFA -> ENFA -> ENFA -- Use only if states are disjoint
+unionENFA :: ENFA Int -> ENFA Int -> ENFA Int-- Use only if states are disjoint
 unionENFA n1 n2 = ENFA states alphabet delta epT start accept where
   states = -1 : statesENF n1 ++ statesENF n2
   alphabet = alphabetENF n1 `union` alphabetENF n2
@@ -76,11 +76,11 @@ unionENFA n1 n2 = ENFA states alphabet delta epT start accept where
   start = -1
   accept = acceptstateENF n1 ++ acceptstateENF n2
 
-starENFA :: ENFA -> ENFA
+starENFA :: ENFA Int -> ENFA Int
 starENFA n = ENFA (statesENF n) (alphabetENF n) (deltaENF n) ep (startENF n) (acceptstateENF n)  where
   ep = epTrans n ++ [(s, startENF n) | s <- acceptstateENF n]
 
-concatENFA :: ENFA -> ENFA -> ENFA -- Use only if states are disjoint again
+concatENFA :: ENFA Int -> ENFA Int -> ENFA Int -- Use only if states are disjoint again
 concatENFA n1 n2 = ENFA states alphabet delta epT start accept where
   states = statesENF n1 ++ statesENF n2
   alphabet = alphabetENF n1 `union` alphabetENF n2

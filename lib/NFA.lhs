@@ -10,24 +10,23 @@ module NFA where
 import Data.List
 import Data.Maybe()
 import DFA
-data NFA = NFA { statesNF :: [State]
+data NFA a= NFA { statesNF :: [a]
                 , alphabetNF:: [Symbol]
-                , deltaNF :: Symbol -> State -> [State]
-                , startNF:: State
-                , acceptstateNF:: [State]}
+                , deltaNF :: Symbol -> a -> [a]
+                , startNF:: a
+                , acceptstateNF:: [a]}
 \end{code}
 
 We also implement a similar, but more complicated transition function suitable for NFA-s.
 
 \begin{code}
-evaluateNF:: NFA -> String -> Bool
+evaluateNF:: Eq a => NFA a-> String -> Bool
 evaluateNF nf st = all (`elem` alphabetNF nf) st && -- captures elements of string in alphabet
              any (`elem` acceptstateNF nf) (stateArrNF' [startNF nf] st)  where
-                stateArrNF':: [State] -> String -> [State]  
-                stateArrNF' qs [] = qs
-                stateArrNF' [] _ = []
-                stateArrNF' [q] (x:xs) | q == -1 = []
-                                       | otherwise = stateArrNF' (deltaNF nf x q) xs --recursion on string
-                stateArrNF' (q:qs) (x:xs) = stateArrNF' [q] (x : xs) `union` stateArrNF' qs (x : xs) --recursion on statespace
+                stateArrNF'  qs [] = qs
+                stateArrNF'  [] _ = []
+                stateArrNF'  [q] (x:xs) = stateArrNF' (deltaNF nf x q) xs --recursion on string
+                stateArrNF'  (q:qs) (x:xs) = stateArrNF' [q] (x : xs) `union` stateArrNF' qs (x : xs) --recursion on statespace
 \end{code}
+
 

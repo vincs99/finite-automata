@@ -38,7 +38,7 @@ generateWord (Plus r) = generateWord (Con r (Star r))
 
 A function to use for testing: 
 \begin{code}
-qc :: DFA -> RegExp -> Int -> IO ()
+qc :: Eq a => DFA a -> RegExp -> Int -> IO ()
 qc _ _ 0 = print "No counterexample found"
 qc dfa ex n =  do
   s <- generateWord ex
