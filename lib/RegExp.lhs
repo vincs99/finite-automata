@@ -11,14 +11,15 @@ import ENFA()
 import Test.QuickCheck
 
 data RegExp = Epsilon | R [Symbol] | Union RegExp RegExp | Star RegExp | Con RegExp RegExp | Plus RegExp
+  deriving (Eq, Show)
 
-instance Show RegExp where
-  show Epsilon = "R e"
-  show (R xs) = "R " ++ show xs
-  show (Union r1 r2) = show r1 ++ " u " ++ show r2
-  show (Star r) = "(" ++  show r ++ ")*"
-  show (Con r1 r2) = show r1 ++ show r2
-  show (Plus r) = "(" ++ show r ++ ")+"
+ppt:: RegExp -> String
+ppt Epsilon = "R e"
+ppt (R xs) = "R " ++ xs
+ppt (Union r1 r2) = "(" ++ ppt r1 ++ ")" ++ "u" ++ "(" ++ ppt r2 ++ ")"
+ppt (Star r) = "(" ++  ppt r ++ ")*"
+ppt (Con r1 r2) = "(" ++ ppt r1 ++ ")" ++ "(" ++ ppt r2 ++ ")"
+ppt (Plus r) = "(" ++ ppt r ++ ")+"
 
 
 generateWord :: RegExp -> IO String
