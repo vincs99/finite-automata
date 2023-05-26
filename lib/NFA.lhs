@@ -15,6 +15,11 @@ data NFA a= NFA { statesNF :: [a]
                 , deltaNF :: Symbol -> a -> [a]
                 , startNF:: a
                 , acceptstateNF:: [a]}
+
+instance Show a => Show (NFA a) where
+    show (NFA sts alph del strt acc) 
+      = "NFA" ++ "("++ show sts ++ "," ++ show alph ++ "," ++ show1 del ++ "," ++ show strt ++ "," ++ show acc ++")" where
+      show1 f = show ["d" ++ "(" ++ show sym ++ "," ++ show st ++ ")" ++ " = " ++ show (f sym st) | sym <- alph, st <- sts ]
 \end{code}
 
 We also implement a similar, but more complicated transition function suitable for NFA-s.

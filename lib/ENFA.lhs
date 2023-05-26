@@ -18,6 +18,10 @@ data ENFA a = ENFA { statesENF :: [a]
                 , startENF:: a
                 , acceptstateENF:: [a]}
 
+instance Show a => Show (ENFA a) where
+    show (ENFA sts alph del eps strt acc) 
+      = "ENFA" ++ "("++ show sts ++ "," ++ show alph ++ "," ++ show1 del ++ "," ++ show eps ++ "," ++ show strt ++ "," ++ show acc ++")" where
+      show1 f = show ["d" ++ "(" ++ show sym ++ "," ++ show st ++ ")" ++ " = " ++ show (f sym st) | sym <- alph, st <- sts ]
 -- Taken from https://stackoverflow.com/questions/19212558/transitive-closure-from-a-list-using-haskell
 trClose :: Eq a => [(a, a)] -> [(a, a)]
 trClose closure 
