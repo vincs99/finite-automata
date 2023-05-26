@@ -8,6 +8,7 @@ import System.Random
 import DFA
 import NFA()
 import ENFA()
+import Test.QuickCheck
 
 data RegExp = Epsilon | R [Symbol] | Union RegExp RegExp | Star RegExp | Con RegExp RegExp | Plus RegExp
 
@@ -48,4 +49,24 @@ qc dfa ex n =  do
       if s == "" 
       then print "The DFA rejected the empty string"
       else print ("the DFA rejected " ++ s) 
+\end{code}
+
+
+
+\begin{code}
+generateString :: RegExp -> Gen String
+generateString Epsilon = return ""
+generateString (R xs) = return xs
+generateString (Union r1 r2) = oneof [generateString r1, generateString r2]
+generateString (Con r1 r2) = do
+  w <- generateString r1
+  v <- generateString r2
+  return (w ++ v)
+generateString (Star r) = oneof [generateString Epsilon, generateString (Con r (Star r)), generateString (Con r (Star r))]
+generateString (Plus r) = generateString (Con r (Star r))
+
+
+-- test
+test1 :: IO ()
+test1 = quickCheck (forAll (generateString (Plus (R "0"))) (\w -> zeroStart `evaluate` w))
 \end{code}
