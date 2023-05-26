@@ -14,6 +14,12 @@ data DFA a = DFA { states :: [a]
                 , delta :: Symbol -> a -> a
                 ,  start:: a
                 , acceptstate:: [a]}
+instance Show a => Show (DFA a) where
+    show (DFA sts alph del strt acc) 
+      = "DFA" ++ "("++ show sts ++ "," ++ show alph ++ "," ++ show1 del ++ "," ++ show strt ++ "," ++ show acc ++")" where
+      show1 f = show ["d" ++ "(" ++ show sym ++ "," ++ show st ++ ")" ++ " = " ++ show (f sym st) | sym <- alph, st <- sts ]
+
+
 \end{code}
 
 We implement a basic evaluation function that upon input from the string, evaluates if the string is in the 
