@@ -45,6 +45,7 @@ qc4 = qc zeroStart (Star (Union (R "a") (R "1"))) 100
 
 -- RegExp to ENFA
 regExpToENFA :: RegExp -> ENFA Int
+regExpToENFA Empty   = ENFA [0] [] (\_ _ -> []) [] 0 []
 regExpToENFA Epsilon = ENFA [0] [] (\_ _ -> []) [] 0 [0]
 regExpToENFA (R xs) = ENFA [0..length xs -1] (nub xs) delta [] 0 [length xs -1] where
   delta symbol state | xs !! state == symbol = [state + 1]
