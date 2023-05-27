@@ -10,18 +10,21 @@ import NFA()
 import ENFA()
 import Test.QuickCheck
 
+
 data RegExp = Empty | Epsilon | R [Symbol] | Union RegExp RegExp | Star RegExp | Con RegExp RegExp | Plus RegExp
-  deriving Show
+  deriving (Show, Eq)
 
 pRegExp :: RegExp -> String
 pRegExp Empty = ""
 pRegExp Epsilon = "R e"
 pRegExp (R xs) = show xs
-pRegExp (Union r1 r2) = show r1 ++ " u " ++ show r2
-pRegExp (Star r) = "(" ++  show r ++ ")*"
-pRegExp (Con r1 r2) = show r1 ++ show r2
-pRegExp (Plus r) = "(" ++ show r ++ ")+"
+pRegExp (Union r1 r2) = "(" ++ pRegExp r1 ++ " u " ++ pRegExp r2 ++ ")"
+pRegExp (Star r) = "(" ++  pRegExp r ++ ")*"
+pRegExp (Con r1 r2) = pRegExp r1 ++ pRegExp r2
+pRegExp (Plus r) = "(" ++ pRegExp r ++ ")+"
 
+regExpUnion :: [RegExp] -> RegExp
+regExpUnion = foldr Union Epsilon
 
 generateWord :: RegExp -> IO String
 generateWord Empty = error "cannot generate from empty language"

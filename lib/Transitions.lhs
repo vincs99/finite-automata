@@ -33,52 +33,67 @@ transENtoD (ENFA sts alph del eps strt ac) = let nf = ENFA sts alph del eps strt
 \end{code}
 
 
-The translation between DFAs and regular expressions is based on Sipser \ref{sipser13}.
+AFL-notes version:
 
-For translating a DFA to a regular expression, we need another type of automaton, i.e.\ 
-the generalized nondeterministic finite automaton, or \emph{GNFA} for short.
-This automaton is like a regular epsilon-NFA, but it has regular expressions as labels (over symbols), 
-and exactly one accepting state. 
-
+First we rename the states so that they are now integers $1\dots n$ where $n$ is the amount of states.
+The starting state will be 1. For that we use the following function:
 \begin{code}
--- Define GNFA
-data GNFA a = GNFA { statesGNF :: [a]                
-                , deltaGNF :: RegExp -> a -> a
-                , startGNF:: a
-                , acceptstateGNF:: a}
-\end{code}
-
-The first step is to convert a DFA to a GNFA. We make the GNFA of type Int for convenience.
-It will get a fresh starting and accepting state.
-The new starting state will get just an epsilon arrow to the state corresponding to the old starting state.
-The old accepting states will get epsilon arrows to the new accepting state.
-Furthermore, the labels of the GNFA will be the old labels converted to a regular expression. 
-\begin{code}
-
--- ENFA to GNFA
-transDFAtoGNFA :: Eq a => DFA a -> GNFA Int
-transDFAtoGNFA dfa = GNFA sts delta' newStart newAccept where
-  sts = [0..length (states dfa) +1]
-  delta' (R [s]) k = fromJust (elemIndex (delta dfa s (states dfa !! k)) (states dfa))
-  delta' Epsilon k | k == newStart = fromJust (elemIndex (start dfa) (states dfa))
-                 | k `elem` [ fromJust (elemIndex s (states dfa)) | s <- acceptstate dfa ] = newAccept
-  delta' _ _ = -1
-  newStart = length (states dfa)
-  newAccept = length (states dfa) + 1
+-- tests to add: new start state is indeed 1. They recognize the same language 
+makeIntDFA :: Eq a => DFA a -> DFA Int
+makeIntDFA dfa = DFA sts alph delt strt acceptst 
+  where sts = [1..length (states dfa)]
+        alph = alphabet dfa
+        delt sym i  = indX $ delta dfa sym (states dfa !! (i-1))
+        strt = indX (start dfa)
+        acceptst = [indX s | s <- acceptstate dfa]
+        indX s = fromJust (elemIndex s (states dfa)) + 1
 
 
--- for testing
-gnfa :: GNFA Int
-gnfa = transDFAtoGNFA zeroStart
+-- simplify is a misleading name, it handles the concatenation with the empty language.
+-- It does try to make a sort of readable RegExP though
+transDFAtoRegExp :: Eq a => DFA a -> RegExp
+transDFAtoRegExp dfa = simplify $ regExpUnion [rijk dfaInt (start dfaInt) f (length $ states dfa) | f <- acceptstate dfaInt ]
+  where dfaInt = makeIntDFA dfa
 
-\end{code}
+-- Here is the magic from the notes:
+rijk :: DFA Int -> Int -> Int -> Int -> RegExp
+rijk dfa i j 0 | i == j  = regExpUnion labels
+               | null labels = Empty
+               | length labels == 1 = head labels
+               | otherwise = foldr Union (head labels) (tail labels)          
+  where labels =  [R [x] | x <- alphabet dfa, delta dfa x i == j]
+rijk dfa i j k = Union (rijk dfa i j (k-1)) (Con (rijk dfa i k (k-1)) (Con (Star $ rijk dfa k k (k-1)) (rijk dfa k j (k-1))))
 
-The next step is to reduce the obtained GNFA to a GNFA with just a starting state and an accepting state, 
-so that the resulting label from the arrow from the starting state to the accepting state is exactly the regular expression we need.
-To make the proces easier, we need exactly one arrow between all states (that are not the starting or accepting state).
 
-\begin{code}
+simplify :: RegExp -> RegExp
+simplify r | r == simplify' r = r
+            | otherwise = simplify $ simplify' r
 
+simplify' :: RegExp -> RegExp
+simplify' Empty = Empty
+simplify' Epsilon = Epsilon
+simplify' (R xs) = R xs
+simplify' (Con Empty Empty) = Empty
+simplify' (Con Epsilon Epsilon) = Epsilon
+simplify' (Con _ Empty) = Empty
+simplify' (Con Empty _) = Empty
+simplify' (Con r Epsilon) = simplify' r
+simplify' (Con Epsilon r) = simplify' r
+simplify' (Con r1 r2) = Con (simplify' r1) (simplify' r2)
+simplify' (Union Empty Empty) = Empty
+simplify' (Union Empty r) = simplify' r
+simplify' (Union r Empty) = simplify' r
+simplify' (Union Epsilon Epsilon) = Epsilon
+simplify' (Union r Epsilon) = simplify' r
+simplify' (Union Epsilon r) = simplify' r 
+simplify' (Union r1 r2) | r1 /= r2 = Union (simplify' r1) (simplify' r2)
+                       | otherwise = simplify' r1
+simplify' (Plus Epsilon) = Epsilon
+simplify' (Star Epsilon) = Epsilon
+simplify' (Plus Empty) = Empty
+simplify' (Star Empty) = Epsilon
+simplify' (Star r) = Star (simplify' r)
+simplify' (Plus r) = Plus (simplify' r)
 
 
 \end{code}
