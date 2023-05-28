@@ -8,6 +8,8 @@ function, the start state and the accept states.
 \begin{code}
 module DFA where
 
+import Data.List
+
 type Symbol = Char
 data DFA a = DFA { states :: [a] 
                 , alphabet:: [Symbol]
@@ -45,5 +47,11 @@ zeroStart = DFA [0,1,2] ['0', '1'] deltazero 0 [1] where
      | st == 1 = 1
      | st == 2 = 2
      | otherwise = -1
+\end{code}
+
+Some basic transform of a DFA
+\begin{code}
+flipDFA :: Eq a => DFA a -> DFA a
+flipDFA (DFA sts alp del st acc) = DFA sts alp del st (sts \\ acc)
 \end{code}
 
