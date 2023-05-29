@@ -9,8 +9,9 @@ define some helper functions to calculate $\epsilon$-closure of states. For this
 module ENFA where
 
 import Data.List
-import Data.Maybe()
 import DFA
+import NFA
+import Test.QuickCheck
 data ENFA a = ENFA { statesENF :: [a]
                 , alphabetENF:: [Symbol]
                 , deltaENF :: Symbol -> a -> [a]
@@ -54,3 +55,18 @@ evaluateENF nf st = all (`elem` alphabetENF nf) st && -- captures elements of st
                 stateArrENF' (q:qs) (x:xs) = stateArrENF' [q] (x : xs) `union` stateArrENF' qs (x : xs) --recursion on statespace
 \end{code}
 
+We make ENFA -s instance of Arbitrary by slightly modifying the relevant code for NFA-s.
+\begin{code}
+
+
+instance Arbitrary (ENFA Int) where
+    arbitrary = do
+        -- choose a set of up to 10 worlds:
+        sts <- sublistOf [1..10]
+        let sym = ['0', '1']
+        delt <- randomDeltaNF sym sts sts
+        eps <- sublistOf [(x, y) | x <- sts, y <- sts]
+        strt <- elements sts
+        acc <- sublistOf sts
+        return $ ENFA sts sym delt eps strt acc
+\end{code}

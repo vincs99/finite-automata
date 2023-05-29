@@ -12,10 +12,6 @@ import ENFA
 import RegExp
 import Data.Maybe (fromJust)
 
-
-
-
-
 nfToDf:: Eq a => NFA a -> DFA [a]
 nfToDf (NFA sts alph del strt ac) = 
   DFA (subsequences sts) alph del' [strt] [st | st <- subsequences sts,  intersect st ac /= []] where

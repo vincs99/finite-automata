@@ -24,8 +24,8 @@ main = do
     test1ENF
     test2ENF
 \end{code}
-The first test checks whether the example DFA, called zeroStart indeed accepts the strings 
-starging with $0$. Note the regular expression for this is $0(0+1)*$. 
+The first test whether the example DFA, called zeroStart indeed accepts the strings 
+starging with $0$. Note the regular expression for this language is $0(0+1)*$. 
 We do the same for slightly modified NFA and ENFA versions of zeroStart. 
 
 \begin{code}
@@ -63,7 +63,7 @@ test1ENF = quickCheck (forAll (generateString (Con (R "0") (Star (Union (R "0") 
 \end{code}
 
 We now test that words generated from the RegExp for the complement are not accepted. 
-Note the RegExp for that is $\epsilon + 1(0+1)*$
+Note the RegExp for the complement language is $\epsilon + 1(0+1)*$
 
 \begin{code}
 test2DF :: IO ()
@@ -75,6 +75,8 @@ test2NF = quickCheck (forAll (generateString (Union Epsilon (Con (R "1") (Star (
 test2ENF :: IO ()
 test2ENF = quickCheck (forAll (generateString (Union Epsilon (Con (R "1") (Star (Union (R "0") (R "1")))))) (not . evaluateENF zeroStartENF))
 \end{code}
+
+
 %To also find out which part of your program is actually used for these tests,
 %run \verb|stack clean && stack test --coverage|. Then look for ``The coverage
 %report for ... is available at ... .html'' and open this file in your browser.

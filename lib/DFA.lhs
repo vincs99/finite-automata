@@ -9,6 +9,7 @@ function, the start state and the accept states.
 module DFA where
 
 import Data.List
+import Test.QuickCheck
 
 type Symbol = Char
 data DFA a = DFA { states :: [a] 
@@ -49,9 +50,36 @@ zeroStart = DFA [0,1,2] ['0', '1'] deltazero 0 [1] where
      | otherwise = -1
 \end{code}
 
-Some basic transform of a DFA
+Some basic transform of a DFA. 
 \begin{code}
 flipDFA :: Eq a => DFA a -> DFA a
 flipDFA (DFA sts alp del st acc) = DFA sts alp del st (sts \\ acc)
 \end{code}
 
+We make DFA-s instance of Arbitrary as follows. We use solution to Homework 2.
+\begin{code}
+-- recursively make a valuation function for these worlds:
+randomFunFromTo :: (Eq a, Arbitrary a) => [a] -> [a] -> Gen (a -> a)
+randomFunFromTo [] _ = return (const undefined)
+randomFunFromTo (w:ws) ps = do
+    f <- randomFunFromTo ws ps
+    wResult <- elements ps
+    return $ \v -> if v == w then wResult else f v
+
+randomDelta :: (Eq a, Arbitrary a) => [Symbol] -> [a] -> [a] -> Gen (Symbol -> a -> a)
+randomDelta [] _ _ = return (const undefined)
+randomDelta (sym:syms) ds ps = do 
+    f <- randomDelta syms ds ps
+    wResult <- randomFunFromTo ds ps
+    return $ \sy -> if sy == sym then wResult else f sy
+
+instance Arbitrary (DFA Int) where
+    arbitrary = do
+        -- choose a set of up to 10 worlds:
+        sts <- sublistOf [1..10]
+        let sym = ['0', '1']
+        delt <- randomDelta sym sts sts
+        strt <- elements sts
+        acc <- sublistOf sts
+        return $ DFA sts sym delt strt acc
+\end{code}
