@@ -111,8 +111,4 @@ simplify r | r == simplify' r = r
   simplify' (Plus r') = Plus (simplify' r')
 
 
-
--- test
-test1 :: IO ()
-test1 = quickCheck (forAll (generateString (Plus (R "0"))) (\w -> zeroStart `evaluate` w))
 \end{code}
