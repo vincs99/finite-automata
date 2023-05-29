@@ -35,23 +35,24 @@ regExpToENFA :: RegExp -> ENFA Int
 regExpToENFA Empty   = ENFA [1] [] (\_ _ -> []) [] 1 []
 regExpToENFA Epsilon = ENFA [1] [] (\_ _ -> []) [] 1 [1]
 regExpToENFA (R [])  = ENFA [1] [] (\_ _ -> []) [] 1 [1]
-regExpToENFA (R xs)  = ENFA [1..length xs] (nub xs) delta2 [] 1 [length xs] where
-  delta2 symbol state | xs !! state == symbol = [state + 1]
+regExpToENFA (R xs)  = ENFA [0..length xs] (nub xs) delta2 [] 0 [length xs] where
+  delta2 symbol state | state >= length xs || state < 0 = []
+                      | xs !! state == symbol = [state + 1]
                       | otherwise = []
 regExpToENFA (Union r1 r2) = regExpToENFA r1 `unionENFA` makeDisjoint (regExpToENFA r1) (regExpToENFA r2)
 regExpToENFA (Star r) = starENFA (regExpToENFA r)
 regExpToENFA (Con r1 r2) = regExpToENFA r1 `concatENFA` makeDisjoint (regExpToENFA r1) (regExpToENFA r2)
-regExpToENFA (Plus r) = regExpToENFA r `concatENFA` starENFA (makeDisjoint (regExpToENFA r) (regExpToENFA r))
+regExpToENFA (Plus r) = regExpToENFA r `concatENFA` makeDisjoint (regExpToENFA r) (starENFA (regExpToENFA r))
 
 
 -- function that takes two ENFAs and outputs a relabeling of the second ENFA such that the states of both become disjoint
 makeDisjoint :: ENFA Int -> ENFA Int -> ENFA Int
 makeDisjoint n1 n2 = ENFA states' alphabet' delta' epT start' accept where
-  add | minimum (statesENF n2) <= 0 = negate (minimum (statesENF n2)) + (maximum (statesENF n1) + 1)
-       | otherwise = maximum (statesENF n1) + 1
+  add | minimum (statesENF n2) <= 0 = negate (minimum (statesENF n2)) + (maximum (statesENF n1 ++ statesENF n2) + 1)
+      | otherwise = maximum (statesENF n1 ++ statesENF n2) + 1
   states' = map (+ add) (statesENF n2)
   alphabet' = alphabetENF n2
-  delta' sym state = deltaENF n2 sym (state + add)
+  delta' sym state = map (+ add) (deltaENF n2 sym (state - add))
   epT = [(s + add, t + add) | (s,t) <- epTrans n2 ] 
   start' = startENF n2 + add
   accept = map (+ add) (acceptstateENF n2)
@@ -68,7 +69,7 @@ unionENFA n1 n2 = ENFA states'' alphabet2 delta'' epT start'' accept where
 
 starENFA :: ENFA Int -> ENFA Int
 starENFA n = ENFA (statesENF n) (alphabetENF n) (deltaENF n) ep (startENF n) (acceptstateENF n)  where
-  ep = epTrans n ++ [(s, startENF n) | s <- acceptstateENF n]
+  ep = epTrans n ++ [(startENF n, s)| s <- acceptstateENF n] ++ [(s, startENF n) | s <- acceptstateENF n]
 
 concatENFA :: ENFA Int -> ENFA Int -> ENFA Int -- Use only if states are disjoint again
 concatENFA n1 n2 = ENFA states4 alphabet'' delta3 epT start3 accept where
@@ -83,9 +84,9 @@ concatENFA n1 n2 = ENFA states4 alphabet'' delta3 epT start3 accept where
 Finally, we turn to implement DFA to RegExp. AFL-notes version:
 
 First we rename the states so that they are now integers $1\dots n$ where $n$ is the amount of states.
-The starting state will be 1. For that we use the following function:
+For that we use the following function:
 \begin{code}
--- tests to add: new start state is indeed 1. They recognize the same language 
+
 makeIntDFA :: (Eq a, Ord a) => DFA a -> DFA Int
 makeIntDFA dfa = DFA sts alph delt strt acceptst 
   where sts = [1..length (states dfa)]

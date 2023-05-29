@@ -50,7 +50,7 @@ unionL = foldr union []
 evaluateENF:: (Eq a, Ord a) => ENFA a -> String -> Bool
 evaluateENF nf st = all (`elem` alphabetENF nf) st && -- captures elements of string in alphabet
              any (`elem` acceptstateENF nf) (stateArrENF' [startENF nf] st)  where
-                stateArrENF' qs [] = qs
+                stateArrENF' qs [] = rtClose nf qs
                 stateArrENF' [] _ = []
                 stateArrENF' [q] (x:xs)  = rtClose nf (stateArrENF' (unionL (map (deltaENF nf x) (rtClose nf [q]))) xs )
                 stateArrENF' (q:qs) (x:xs) = stateArrENF' [q] (x : xs) `union` stateArrENF' qs (x : xs) --recursion on statespace
