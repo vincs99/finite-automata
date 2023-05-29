@@ -50,7 +50,7 @@ generateWord = generateWord' . simplify
 
 A function to use for testing: 
 \begin{code}
-qc :: Eq a => DFA a -> RegExp -> Int -> IO ()
+qc :: (Eq a, Ord a) => DFA a -> RegExp -> Int -> IO ()
 qc _ _ 0 = print "No counterexample found"
 qc dfa ex n =  do
   s <- generateWord ex

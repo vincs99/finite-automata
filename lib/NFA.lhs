@@ -5,6 +5,7 @@ of a tuple $(Q, \Sigma, \delta, q_{start}, A)$ representing the set of states, t
 function, the start state and the accept states. 
 
 \begin{code}
+{-# LANGUAGE FlexibleInstances #-}
 module NFA where
 
 import Data.List
@@ -54,7 +55,7 @@ randomDeltaNF (sym:syms) ds ps = do
 instance Arbitrary (NFA Int) where
     arbitrary = do
         -- choose a set of up to 10 worlds:
-        sts <- sublistOf [1..10]
+        sts <- (\ ws -> 0:ws) <$> sublistOf [1..5]
         let sym = ['0', '1']
         delt <- randomDeltaNF sym sts sts
         strt <- elements sts

@@ -7,22 +7,34 @@ generates exactly the language of some automaton, and we will add tests that sho
 
 
 \begin{code}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 import Test.QuickCheck
 import RegExp
 import DFA
 import ENFA
 import NFA
-import Transitions()
+import Transitions
+import DFA_raw()
 
 main :: IO()
 main = do
+    print "ZeroStart accepts words starting with 0:"
     test1DF
+    print "ZeroStart does not accept other words:"
     test2DF
+    print "ZeroStartNF accepts words starting with 0: "
     test1NF
+    print "ZeroStartNF does not accept other words:"
     test2NF
+    print "ZeroStartENF accepts words starting with 0:"
     test1ENF
+    print "ZeroStartENF does not accept other words:"
     test2ENF
+    print "Powerset construction yields equivalent DFA for NFA:"
+    test1PowNF
+    print "Powerset construction yields equivalent DFA for ENFA:"
+    test1PowENF
 \end{code}
 The first test whether the example DFA, called zeroStart indeed accepts the strings 
 starging with $0$. Note the regular expression for this language is $0(0+1)*$. 
@@ -74,6 +86,16 @@ test2NF = quickCheck (forAll (generateString (Union Epsilon (Con (R "1") (Star (
 
 test2ENF :: IO ()
 test2ENF = quickCheck (forAll (generateString (Union Epsilon (Con (R "1") (Star (Union (R "0") (R "1")))))) (not . evaluateENF zeroStartENF))
+\end{code}
+
+We now test the powerset construction. We test if an NFA accepts the same binary strings as
+its powerset construct. We repeat for ENFA-s.
+\begin{code}
+test1PowNF :: IO ()
+test1PowNF = quickCheck (forAll (generateString (Union (R "0") (R "1"))) (\w (enf:: NFA Int) -> evaluateNF enf w == evaluate (nfToDf enf) w) )
+
+test1PowENF :: IO ()
+test1PowENF = quickCheck (forAll (generateString (Union (R "0") (R "1"))) (\w (enf:: ENFA Int) -> evaluateENF enf w == evaluate (enfToDf enf) w) )
 \end{code}
 
 

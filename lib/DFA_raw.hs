@@ -3,13 +3,54 @@ module DFA_raw where
 import Data.List()
 import System.Random()
 import DFA
-import ENFA()
+import ENFA
 import NFA()
 import RegExp
-import Transitions()
+import Transitions
+import Test.QuickCheck
 
+--Debug some stuff with ENF transition. 
+--ENFA([0,1],"01",["d('0',0) = [1]","d('0',1) = [1]","d('1',0) = [1]","d('1',1) = [1]"],[(0,0),(1,0),(1,1)],0,[0])
+fENF :: ENFA Int
+fENF = ENFA [0,1] "01" del [(0,0),(1,0),(1,1)] 0 [0] where
+  del '0' 0 = [1]
+  del '0' 1 = [1]
+  del '1' 0 = [1]
+  del '1' 1 = [1]
 
+powfENf :: DFA [Int]
+powfENf = enfToDf fENF
 
+test1toy :: IO ()
+test1toy = quickCheck (forAll (generateString (Union (R "0") (R "1"))) (\w -> evaluateENF fENF w == evaluate (enfToDf fENF) w) )
+
+-- "1"
+--ENFA([0,1,2],"01",["d('0',0) = [2]","d('0',1) = [2]","d('0',2) = [0,1]","d('1',0) = [0,1]","d('1',1) = [2]","d('1',2) = [0,1]"],[(0,0),(0,2),(1,1),(2,2)],0,[0,1,2])
+
+ftwoENF :: ENFA Int
+ftwoENF = ENFA [0,1,2] "01" del2 [(0,0),(0,2),(1,1),(2,2)] 0 [0,1,2] where
+  del2 '0' 0 = [2]
+  del2 '0' 1 = [2]
+  del2 '0' 2 = [0,1]
+  del2 '1' 0 = [0,1]
+  del2 '1' 1 = [2]
+  del2 '1' 2 = [0,1]
+
+powftwo :: DFA [Int]
+powftwo = enfToDf ftwoENF
+
+--"1"
+--ENFA([0,1],"01",["d('0',0) = [0,1]","d('0',1) = [0]","d('1',0) = [1]","d('1',1) = [0,1]"],[(0,1)],0,[1])
+
+f3ENF :: ENFA Int
+f3ENF = ENFA [0,1] "01" del3 [(0,1)] 0 [1] where
+  del3 '0' 0 = [0,1]
+  del3 '0' 1 = [0]
+  del3 '1' 0 = [1]
+  del3 '1' 1 = [0,1]
+
+powf3 :: DFA [Int]
+powf3 = enfToDf f3ENF
 
 -- Toy example: accepts all strings starting with 0
 

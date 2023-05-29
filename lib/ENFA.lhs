@@ -6,6 +6,7 @@ define some helper functions to calculate $\epsilon$-closure of states. For this
 \cite{CS:30073}.
 
 \begin{code}
+{-# LANGUAGE FlexibleInstances #-}
 module ENFA where
 
 import Data.List
@@ -35,8 +36,8 @@ trClose closure
 refClose:: Eq a => [a] -> [(a,a)] -> [(a,a)]
 refClose as ps = nub (ps ++ [(x,x) | x <- as])
 
-rtClose:: Eq a => ENFA a -> a -> [a]
-rtClose nf q = [p | p <- statesENF nf , (q, p) `elem` trClose rcl ] where
+rtClose:: (Eq a, Ord a) => ENFA a -> [a] -> [a]
+rtClose nf qs = sort (unionL [[p | p <- statesENF nf , (q, p) `elem` trClose rcl ] | q<- qs] ) where
                                             rcl = refClose (statesENF nf) (epTrans nf)
 \end{code}
 
@@ -46,12 +47,12 @@ Finally, we modify the the evaluation function.
 unionL:: Eq a => [[a]] -> [a]
 unionL = foldr union []
 
-evaluateENF:: Eq a => ENFA a -> String -> Bool
+evaluateENF:: (Eq a, Ord a) => ENFA a -> String -> Bool
 evaluateENF nf st = all (`elem` alphabetENF nf) st && -- captures elements of string in alphabet
              any (`elem` acceptstateENF nf) (stateArrENF' [startENF nf] st)  where
                 stateArrENF' qs [] = qs
                 stateArrENF' [] _ = []
-                stateArrENF' [q] (x:xs)  = stateArrENF' (unionL (map (deltaENF nf x) (rtClose nf q))) xs
+                stateArrENF' [q] (x:xs)  = rtClose nf (stateArrENF' (unionL (map (deltaENF nf x) (rtClose nf [q]))) xs )
                 stateArrENF' (q:qs) (x:xs) = stateArrENF' [q] (x : xs) `union` stateArrENF' qs (x : xs) --recursion on statespace
 \end{code}
 
@@ -62,7 +63,7 @@ We make ENFA -s instance of Arbitrary by slightly modifying the relevant code fo
 instance Arbitrary (ENFA Int) where
     arbitrary = do
         -- choose a set of up to 10 worlds:
-        sts <- sublistOf [1..10]
+        sts <- (\ ws -> 0:ws) <$> sublistOf [1]
         let sym = ['0', '1']
         delt <- randomDeltaNF sym sts sts
         eps <- sublistOf [(x, y) | x <- sts, y <- sts]
