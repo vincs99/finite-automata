@@ -81,6 +81,7 @@ instance Arbitrary (DFA Int) where
         let sym = ['0', '1']
         delt <- randomDelta sym sts sts
         strt <- elements sts
-        acc <- sublistOf sts
+        accraw <-  sublistOf sts
+        let acc = nub (0:accraw)
         return $ DFA sts sym delt strt acc
 \end{code}

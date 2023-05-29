@@ -59,7 +59,8 @@ instance Arbitrary (NFA Int) where
         let sym = ['0', '1']
         delt <- randomDeltaNF sym sts sts
         strt <- elements sts
-        acc <- sublistOf sts
+        accraw <- sublistOf sts
+        let acc = nub (0:accraw)
         return $ NFA sts sym delt strt acc
 \end{code}
 
