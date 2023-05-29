@@ -32,11 +32,12 @@ Now we implement transition from RegExp to ENFA.
 \begin{code}
 -- RegExp to ENFA
 regExpToENFA :: RegExp -> ENFA Int
-regExpToENFA Empty   = ENFA [0] [] (\_ _ -> []) [] 0 []
-regExpToENFA Epsilon = ENFA [0] [] (\_ _ -> []) [] 0 [0]
-regExpToENFA (R xs) = ENFA [0..length xs -1] (nub xs) delta2 [] 0 [length xs -1] where
+regExpToENFA Empty   = ENFA [1] [] (\_ _ -> []) [] 1 []
+regExpToENFA Epsilon = ENFA [1] [] (\_ _ -> []) [] 1 [1]
+regExpToENFA (R [])  = ENFA [1] [] (\_ _ -> []) [] 1 [1]
+regExpToENFA (R xs)  = ENFA [1..length xs] (nub xs) delta2 [] 1 [length xs] where
   delta2 symbol state | xs !! state == symbol = [state + 1]
-                     | otherwise = []
+                      | otherwise = []
 regExpToENFA (Union r1 r2) = regExpToENFA r1 `unionENFA` makeDisjoint (regExpToENFA r1) (regExpToENFA r2)
 regExpToENFA (Star r) = starENFA (regExpToENFA r)
 regExpToENFA (Con r1 r2) = regExpToENFA r1 `concatENFA` makeDisjoint (regExpToENFA r1) (regExpToENFA r2)
@@ -46,22 +47,23 @@ regExpToENFA (Plus r) = regExpToENFA r `concatENFA` starENFA (makeDisjoint (regE
 -- function that takes two ENFAs and outputs a relabeling of the second ENFA such that the states of both become disjoint
 makeDisjoint :: ENFA Int -> ENFA Int -> ENFA Int
 makeDisjoint n1 n2 = ENFA states' alphabet' delta' epT start' accept where
-  add = maximum (statesENF n1)
+  add | minimum (statesENF n2) <= 0 = negate (minimum (statesENF n2)) + (maximum (statesENF n1) + 1)
+       | otherwise = maximum (statesENF n1) + 1
   states' = map (+ add) (statesENF n2)
   alphabet' = alphabetENF n2
   delta' sym state = deltaENF n2 sym (state + add)
   epT = [(s + add, t + add) | (s,t) <- epTrans n2 ] 
-  start' = start' + add
+  start' = startENF n2 + add
   accept = map (+ add) (acceptstateENF n2)
 
 
 unionENFA :: ENFA Int -> ENFA Int -> ENFA Int-- Use only if states are disjoint
 unionENFA n1 n2 = ENFA states'' alphabet2 delta'' epT start'' accept where
-  states'' = -1 : statesENF n1 ++ statesENF n2
+  states'' = start'' : statesENF n1 ++ statesENF n2
   alphabet2 = alphabetENF n1 `union` alphabetENF n2
   delta'' sym st = deltaENF n1 sym st ++ deltaENF n2 sym st
-  epT = epTrans n1 ++ epTrans n2 ++ [(-1, startENF n1), (-1, startENF n2)]
-  start'' = -1
+  epT = epTrans n1 ++ epTrans n2 ++ [(start'', startENF n1), (start'', startENF n2)]
+  start'' = maximum (statesENF n2 ++ statesENF n1) + 1 
   accept = acceptstateENF n1 ++ acceptstateENF n2
 
 starENFA :: ENFA Int -> ENFA Int
@@ -110,4 +112,3 @@ rijk dfa i j 0 | i == j  = regExpUnion $ Epsilon : labels
 rijk dfa i j k = Union (rijk dfa i j (k-1)) (Con (rijk dfa i k (k-1)) (Con (Star $ rijk dfa k k (k-1)) (rijk dfa k j (k-1))))
 
 \end{code}
-
