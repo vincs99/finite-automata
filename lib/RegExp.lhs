@@ -48,20 +48,22 @@ generateWord = generateWord' . simplify
   generateWord' (Plus r) = generateWord' (Con r (Star r)) 
 \end{code}
 
-A function to use for testing: 
+We create an Arbitrary instance for RegExp to be able to generate regular expressions. 
+Note we exclude the Empty expression from the generation, as we cannot generate words from that.
 \begin{code}
-qc :: (Eq a, Ord a) => DFA a -> RegExp -> Int -> IO ()
-qc _ _ 0 = print "No counterexample found"
-qc dfa ex n =  do
-  s <- generateWord ex
-  if evaluate dfa s
-    then qc dfa ex (n-1)
-    else 
-      if s == "" 
-      then print "The DFA rejected the empty string"
-      else print ("the DFA rejected " ++ s) 
-\end{code}
+instance Arbitrary RegExp where
+  arbitrary = sized randomReg where
+    randomReg :: Int -> Gen RegExp
+    randomReg 0 = elements [Epsilon]
+    randomReg n = oneof [ R <$> elements [['0', '1']]
+                          , Star <$> randomReg (n `div` 2)
+                          , Plus <$> randomReg (n `div` 2)
+                          , Con <$> randomReg (n `div` 2)
+                          <*> randomReg (n `div` 2) 
+                          , Union <$> randomReg (n `div` 2)
+                          <*> randomReg (n `div` 2)]
 
+\end{code}
 
 
 \begin{code}
