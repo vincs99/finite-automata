@@ -3,8 +3,6 @@ Here we implement regular expressions and a toolset to generate words that the r
 
 \begin{code}
 module RegExp where
-
-import System.Random
 import DFA
 import NFA()
 import ENFA()
@@ -28,24 +26,6 @@ regExpUnion [] = Empty
 regExpUnion [r] = r
 regExpUnion (r:rs) =  foldr Union r rs
 
-
-generateWord :: RegExp -> IO String
-generateWord = generateWord' . simplify
-  where 
-  generateWord' Empty = error "cannot generate from empty language"
-  generateWord' Epsilon = pure ""
-  generateWord' (R xs) = pure xs
-  generateWord' (Union r1 r2) = do
-    i <- getStdRandom (randomR (0,1::Int))
-    [generateWord' r1, generateWord' r2] !! i
-  generateWord' (Con r1 r2) = do
-    one <- generateWord' r1
-    two <- generateWord' r2
-    return (one ++ two)
-  generateWord' (Star r) = do
-    i <- getStdRandom (randomR (0,1::Int))
-    [generateWord' Epsilon, generateWord' (Con r (Star r))] !! i
-  generateWord' (Plus r) = generateWord' (Con r (Star r)) 
 \end{code}
 
 We create an Arbitrary instance for RegExp to be able to generate regular expressions. 

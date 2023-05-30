@@ -98,8 +98,6 @@ makeIntDFA dfa = DFA sts alph delt strt acceptst
         acceptst = [indX s | s <- acceptstate dfa]
         indX s = fromJust (elemIndex s (states dfa)) + 1
 
-
-
 -- simplify to make the result a bit more readable 
 transDFAtoRegExp :: (Eq a, Ord a) => DFA a -> RegExp
 transDFAtoRegExp dfa = simplify $ regExpUnion [rijk dfaInt (start dfaInt) f (length $ states dfa) | f <- acceptstate dfaInt ]
@@ -113,21 +111,5 @@ rijk dfa i j 0 | i == j  = regExpUnion $ Epsilon : labels
                | otherwise = foldr Union (head labels) (tail labels)          
   where labels =  [R [x] | x <- alphabet dfa, delta dfa x i == j]
 rijk dfa i j k = Union (rijk dfa i j (k-1)) (Con (rijk dfa i k (k-1)) (Con (Star $ rijk dfa k k (k-1)) (rijk dfa k j (k-1))))
-
-
-reachable :: Eq a => DFA a -> a -> Bool
-reachable dfa s = s `elem` reachableInSteps (length $ states dfa) where
-  reachableInSteps 0 = [start dfa]
-  reachableInSteps n = nub $ concatMap allSuccessors (reachableInSteps (n-1))
-  allSuccessors st = nub (st : [delta dfa sym st | sym <- alphabet dfa])
-
-
-cutDFA :: Eq a => DFA a -> DFA a  
-cutDFA d = DFA sts alp delt strt acc where
-  sts = filter (reachable d) (states d)
-  alp = alphabet d
-  strt = start d
-  acc = filter (reachable d) (acceptstate d)
-  delt = delta d 
 
 \end{code}

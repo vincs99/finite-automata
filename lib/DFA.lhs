@@ -51,10 +51,26 @@ zeroStart = DFA [0,1,2] ['0', '1'] deltazero 0 [1] where
      | otherwise = -1
 \end{code}
 
-Some basic transform of a DFA. 
+Some transforms of a DFA. 
 \begin{code}
 flipDFA :: (Eq a, Ord a) => DFA a -> DFA a
 flipDFA (DFA sts alp del st acc) = DFA sts alp del st (sts \\ acc)
+
+reachable :: Eq a => DFA a -> a -> Bool
+reachable dfa s = s `elem` reachableInSteps (length $ states dfa) where
+  reachableInSteps 0 = [start dfa]
+  reachableInSteps n = nub $ concatMap allSuccessors (reachableInSteps (n-1))
+  allSuccessors st = nub (st : [delta dfa sym st | sym <- alphabet dfa])
+
+
+cutDFA :: Eq a => DFA a -> DFA a  
+cutDFA d = DFA sts alp delt strt acc where
+  sts = filter (reachable d) (states d)
+  alp = alphabet d
+  strt = start d
+  acc = filter (reachable d) (acceptstate d)
+  delt = delta d 
+
 \end{code}
 
 We make DFA-s instance of Arbitrary as follows. We use solution to Homework 2.

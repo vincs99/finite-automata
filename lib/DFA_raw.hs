@@ -1,13 +1,15 @@
 module DFA_raw where
 
 import Data.List()
-import System.Random()
+import System.Random
 import DFA
 import ENFA
 import NFA()
 import RegExp
 import Transitions
 import Test.QuickCheck()
+
+
 
 -- Toy example: accepts all strings starting with 0
 
@@ -34,6 +36,24 @@ qcToy = do
   if evaluate zeroStart s 
     then print ("zeroStart accepts " ++ s) 
     else print ("zeroStart rejects " ++ s)
+
+generateWord :: RegExp -> IO String
+generateWord = generateWord' . simplify
+  where 
+  generateWord' Empty = error "cannot generate from empty language"
+  generateWord' Epsilon = pure ""
+  generateWord' (R xs) = pure xs
+  generateWord' (Union r1 r2) = do
+    i <- getStdRandom (randomR (0,1::Int))
+    [generateWord' r1, generateWord' r2] !! i
+  generateWord' (Con r1 r2) = do
+    one <- generateWord' r1
+    two <- generateWord' r2
+    return (one ++ two)
+  generateWord' (Star r) = do
+    i <- getStdRandom (randomR (0,1::Int))
+    [generateWord' Epsilon, generateWord' (Con r (Star r))] !! i
+  generateWord' (Plus r) = generateWord' (Con r (Star r)) 
 
 -- More toys
 qc1 :: IO ()

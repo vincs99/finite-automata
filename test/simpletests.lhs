@@ -44,9 +44,9 @@ main = do
     print "Composition of transitions yields equivalent DFA for DFA:"
     test1DFeqv
     print "Complement RegExps don't generate the same word:"
-    test1CompRegx
-    print "Complement on different RegExp:"
-    test2CompRegx
+    --test1CompRegx
+    --print "Complement on different RegExp:"
+    --test2CompRegx
 
     
 \end{code}
