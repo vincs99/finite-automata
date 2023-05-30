@@ -24,7 +24,7 @@ We extend the powerset construction for $\epsilon$-NFA-s.
 enfToDf:: (Eq a, Ord a) => ENFA a -> DFA [a]
 enfToDf (ENFA sts alph del eps strt ac) = let nf = ENFA sts alph del eps strt ac in 
   DFA (subsequences sts) alph del' (rtClose nf [strt]) [st | st <- subsequences sts,  intersect st ac /= []] where
-    del' sy ls = let nf = ENFA sts alph del eps strt ac in (rtClose nf ( unionL [del sy l | l <- ls] ))
+    del' sy ls = let nf = ENFA sts alph del eps strt ac in rtClose nf ( unionL [del sy l | l <- ls] )
                                                               
 \end{code}
 

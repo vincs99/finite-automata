@@ -63,7 +63,7 @@ We make ENFA -s instance of Arbitrary by slightly modifying the relevant code fo
 instance Arbitrary (ENFA Int) where
     arbitrary = do
         -- choose a set of up to 10 worlds:
-        sts <- (\ ws -> 0:ws) <$> sublistOf [1..5]
+        sts <- (0 :) <$> sublistOf [1..5]
         let sym = ['0', '1']
         delt <- randomDeltaNF sym sts sts
         eps <- sublistOf [(x, y) | x <- sts, y <- sts]

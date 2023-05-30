@@ -54,14 +54,14 @@ Note we exclude the Empty expression from the generation, as we cannot generate 
 instance Arbitrary RegExp where
   arbitrary = sized randomReg where
     randomReg :: Int -> Gen RegExp
-    randomReg 0 = elements [Epsilon]
-    randomReg n = oneof [ R <$> elements ["0", "1"]
-                          , Star <$> randomReg (n `div` 2)
-                          , Plus <$> randomReg (n `div` 2)
-                          , Con <$> randomReg (n `div` 2)
-                          <*> randomReg (n `div` 2) 
-                          , Union <$> randomReg (n `div` 2)
-                          <*> randomReg (n `div` 2)]
+    randomReg 0 = return Epsilon
+    randomReg n = oneof [ R <$> elements ["0", "1", "2"]
+                          , Star <$> randomReg (n `div` 8)
+                          , Plus <$> randomReg (n `div` 8)
+                          , Con <$> randomReg (n `div` 8)
+                          <*> randomReg (n `div` 8) 
+                          , Union <$> randomReg (n `div` 8)
+                          <*> randomReg (n `div` 8)]
 
 \end{code}
 
@@ -69,18 +69,19 @@ instance Arbitrary RegExp where
 \begin{code}
 
 generateString :: RegExp -> Gen String
-generateString = generateString' . simplify
-  where generateString' :: RegExp -> Gen String
-        generateString' Empty = error "cannot generate from empty language" 
-        generateString' Epsilon = return ""
-        generateString' (R xs) = return xs
-        generateString' (Union r1 r2) = oneof [generateString' r1, generateString' r2]
-        generateString' (Con r1 r2) = do
-            w <- generateString' r1
-            v <- generateString' r2
+generateString = (`generateString'` 5) . simplify
+  where generateString' :: RegExp -> Int -> Gen String
+        generateString' Empty _ = error "cannot generate from empty language" 
+        generateString' Epsilon _ = return ""
+        generateString' (R xs) _ = return xs
+        generateString' (Union r1 r2) n = oneof [generateString' r1 n, generateString' r2 n]
+        generateString' (Con r1 r2) n = do
+            w <- generateString' r1 n
+            v <- generateString' r2 n
             return (w ++ v)
-        generateString' (Star r) = oneof [generateString' Epsilon, generateString' (Con r (Star r)), generateString' (Con r (Star r))]
-        generateString' (Plus r) = generateString' (Con r (Star r))
+        generateString' (Star _) 0 = return ""    
+        generateString' (Star r) n = oneof [generateString' Epsilon n, generateString' (Con r (Star r)) (n - 1)]
+        generateString' (Plus r) n = generateString' (Con r (Star r)) n
 
 
 
