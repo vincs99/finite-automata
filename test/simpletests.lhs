@@ -43,6 +43,11 @@ main = do
     test1RegtoENF
     print "Composition of transitions yields equivalent DFA for DFA:"
     test1DFeqv
+    print "Complement RegExps don't generate the same word:"
+    test1CompRegx
+    print "Complement on different RegExp:"
+    test2CompRegx
+
     
 \end{code}
 The first test whether the example DFA, called zeroStart indeed accepts the strings 
@@ -82,8 +87,6 @@ dfa2 = DFA [0,1,3] "01" del2 3 [0] where
       | char =='1' && st == 1 = 3
       | char =='1' && st == 3 = 3
       | otherwise = -1
-
-
 
 -- test
 test1DF :: IO ()
@@ -154,13 +157,23 @@ test1RegtoENF = quickCheck ( \ (reg:: RegExp) -> forAll (generateString reg)
 
 We put everything together and test wether a DFA and the DFA obtained from transitioning to RegExp, 
 then to $\epsilon$-NFA and back to DFA are equivalent. We test it on our two example DFA-s.
-
+We also calculate complement RegExp-s by flipping the corresponding DFA accept states
+and test for a for 2 RegExps that they don't generate the same words.
 \begin{code}
 test1DFeqv :: IO ()
 test1DFeqv = quickCheck (forAll (generateString (Union (R "0") (R "1"))) 
                 (\w -> evaluate dfa2 w == evaluate (func dfa2) w &&  evaluate zeroStart w == evaluate (func zeroStart) w)) where
                     func = enfToDf . regExpToENFA . transDFAtoRegExp
 
+test1CompRegx :: IO ()
+test1CompRegx = quickCheck (forAll (generateString reg) (\w -> forAll (generateString (creg reg))(/= w))) where
+                    creg = transDFAtoRegExp . makeIntDFA . flipDFA . enfToDf . regExpToENFA
+                    reg = Union Epsilon (Con (R "1") (Star (Union (R "0") (R "1"))))
+
+test2CompRegx :: IO ()
+test2CompRegx = quickCheck (forAll (generateString reg) (\w -> forAll (generateString (creg reg))(/= w))) where
+                    creg = transDFAtoRegExp . makeIntDFA . flipDFA . enfToDf . regExpToENFA
+                    reg = Con (Star (R "2")) (Con (R "0") (R "0"))
 \end{code}
 
 
