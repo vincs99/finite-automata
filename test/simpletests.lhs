@@ -41,6 +41,8 @@ main = do
     test2DFtoReg
     print "ENFA corresponding to RegExp accepts words generated from RegExp:"
     test1RegtoENF
+    print "Composition of transitions yields equivalent DFA for DFA:"
+    --test1DFeqv
     
 \end{code}
 The first test whether the example DFA, called zeroStart indeed accepts the strings 
@@ -71,13 +73,16 @@ zeroStartENF = ENFA [0,1,2, 3] ['0', '1'] deltazeroNF [(3,2), (2,3)] 0 [1] where
      | otherwise = [-1]
 -- test
 test1DF :: IO ()
-test1DF = quickCheck (forAll (generateString (Con (R "0") (Star (Union (R "0") (R "1"))))) (\w -> zeroStart `evaluate` w))
+test1DF = quickCheck (forAll (generateString (Con (R "0") (Star (Union (R "0") (R "1"))))) 
+                        (\w -> zeroStart `evaluate` w))
 
 test1NF :: IO ()
-test1NF = quickCheck (forAll (generateString (Con (R "0") (Star (Union (R "0") (R "1"))))) (\w -> zeroStartNF `evaluateNF` w ))
+test1NF = quickCheck (forAll (generateString (Con (R "0") (Star (Union (R "0") (R "1"))))) 
+                        (\w -> zeroStartNF `evaluateNF` w ))
 
 test1ENF :: IO ()
-test1ENF = quickCheck (forAll (generateString (Con (R "0") (Star (Union (R "0") (R "1"))))) (\w -> zeroStartENF `evaluateENF` w ))
+test1ENF = quickCheck (forAll (generateString (Con (R "0") (Star (Union (R "0") (R "1"))))) 
+                        (\w -> zeroStartENF `evaluateENF` w ))
 
 \end{code}
 
@@ -86,23 +91,28 @@ Note the RegExp for the complement language is $\epsilon + 1(0+1)*$
 
 \begin{code}
 test2DF :: IO ()
-test2DF = quickCheck (forAll (generateString (Union Epsilon (Con (R "1") (Star (Union (R "0") (R "1")))))) (not . evaluate zeroStart))
+test2DF = quickCheck (forAll (generateString (Union Epsilon (Con (R "1") (Star (Union (R "0") (R "1")))))) 
+                        (not . evaluate zeroStart))
 
 test2NF :: IO ()
-test2NF = quickCheck (forAll (generateString (Union Epsilon (Con (R "1") (Star (Union (R "0") (R "1")))))) (not . evaluateNF zeroStartNF))
+test2NF = quickCheck (forAll (generateString (Union Epsilon (Con (R "1") (Star (Union (R "0") (R "1")))))) 
+                        (not . evaluateNF zeroStartNF))
 
 test2ENF :: IO ()
-test2ENF = quickCheck (forAll (generateString (Union Epsilon (Con (R "1") (Star (Union (R "0") (R "1")))))) (not . evaluateENF zeroStartENF))
+test2ENF = quickCheck (forAll (generateString (Union Epsilon (Con (R "1") (Star (Union (R "0") (R "1")))))) 
+                        (not . evaluateENF zeroStartENF))
 \end{code}
 
 We now test the powerset construction. We test if an NFA accepts the same binary strings as
 its powerset construct. We repeat for ENFA-s.
 \begin{code}
 test1PowNF :: IO ()
-test1PowNF = quickCheck (forAll (generateString (Union (R "0") (R "1"))) (\w (enf:: NFA Int) -> evaluateNF enf w == evaluate (nfToDf enf) w) )
+test1PowNF = quickCheck (forAll (generateString (Union (R "0") (R "1"))) 
+                            (\w (enf:: NFA Int) -> evaluateNF enf w == evaluate (nfToDf enf) w) )
 
 test1PowENF :: IO ()
-test1PowENF = quickCheck (forAll (generateString (Union (R "0") (R "1"))) (\w (enf:: ENFA Int) -> evaluateENF enf w == evaluate (enfToDf enf) w) )
+test1PowENF = quickCheck (forAll (generateString (Union (R "0") (R "1"))) 
+                            (\w (enf:: ENFA Int) -> evaluateENF enf w == evaluate (enfToDf enf) w) )
 \end{code}
 
 We now test the transition from DFA to RegExp. We check whether a DFA accepts words generated from
@@ -111,10 +121,12 @@ the complement DFA.
 
 \begin{code}
 test1DFtoReg :: IO ()
-test1DFtoReg = quickCheck (\ (df:: DFA Int) -> if transDFAtoRegExp df /= Empty then (forAll (generateString (transDFAtoRegExp df)) (\w -> df `evaluate` w) ) else property True)
+test1DFtoReg = quickCheck (\ (df:: DFA Int) -> if transDFAtoRegExp df /= Empty then 
+                forAll (generateString (transDFAtoRegExp df)) (\w -> df `evaluate` w) else property True)
 
 test2DFtoReg :: IO ()
-test2DFtoReg = quickCheck ( \ (df:: DFA Int) -> if transDFAtoRegExp (flipDFA df) /= Empty then (forAll (generateString (transDFAtoRegExp (flipDFA df))) (not . evaluate df )) else property True)
+test2DFtoReg = quickCheck ( \ (df:: DFA Int) -> if transDFAtoRegExp (flipDFA df) /= Empty then 
+                forAll (generateString (transDFAtoRegExp (flipDFA df))) (not . evaluate df ) else property True)
 \end{code}
 
 We now test the transition from RegExp to $\epsilon$-NFA. We check whether the $\epsilon$-NFA corresponding
@@ -122,7 +134,19 @@ to a RegExp accepts words generated from the RegExp.
 
 \begin{code}
 test1RegtoENF :: IO ()
-test1RegtoENF = quickCheck ( \ (reg:: RegExp) -> (forAll (generateString reg) (\w -> (regExpToENFA reg) `evaluateENF` w)))
+test1RegtoENF = quickCheck ( \ (reg:: RegExp) -> forAll (generateString reg) 
+                        (\w -> regExpToENFA reg `evaluateENF` w))
+\end{code}
+
+We put everything together and test wether a DFA and the DFA obtained from transitioning to RegExp, 
+then to $\epsilon$-NFA and back to DFA are equivalent. 
+
+\begin{code}
+test1DFeqv :: IO ()
+test1DFeqv = quickCheck (forAll (generateString (Union (R "0") (R "1"))) 
+                (\w (df:: DFA Int) -> evaluate df w == evaluate (func df) w )) where
+                    func = enfToDf . regExpToENFA . transDFAtoRegExp
+
 \end{code}
 
 %To also find out which part of your program is actually used for these tests,
