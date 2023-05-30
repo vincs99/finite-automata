@@ -42,7 +42,7 @@ main = do
     print "ENFA corresponding to RegExp accepts words generated from RegExp:"
     test1RegtoENF
     print "Composition of transitions yields equivalent DFA for DFA:"
-    --test1DFeqv
+    test1DFeqv
     
 \end{code}
 The first test whether the example DFA, called zeroStart indeed accepts the strings 
@@ -71,6 +71,20 @@ zeroStartENF = ENFA [0,1,2, 3] ['0', '1'] deltazeroNF [(3,2), (2,3)] 0 [1] where
      | st == 2 = [2, 3]
      | st == 3 = [3]
      | otherwise = [-1]
+
+dfa2:: DFA Int
+dfa2 = DFA [0,1,3] "01" del2 3 [0] where
+    del2 char st  
+      | char =='0' && st == 0 = 3
+      | char =='0' && st == 1 = 0
+      | char =='0' && st == 3 = 3
+      | char =='1' && st == 0 = 1
+      | char =='1' && st == 1 = 3
+      | char =='1' && st == 3 = 3
+      | otherwise = -1
+
+
+
 -- test
 test1DF :: IO ()
 test1DF = quickCheck (forAll (generateString (Con (R "0") (Star (Union (R "0") (R "1"))))) 
@@ -139,15 +153,16 @@ test1RegtoENF = quickCheck ( \ (reg:: RegExp) -> forAll (generateString reg)
 \end{code}
 
 We put everything together and test wether a DFA and the DFA obtained from transitioning to RegExp, 
-then to $\epsilon$-NFA and back to DFA are equivalent. 
+then to $\epsilon$-NFA and back to DFA are equivalent. We test it on our two example DFA-s.
 
 \begin{code}
 test1DFeqv :: IO ()
 test1DFeqv = quickCheck (forAll (generateString (Union (R "0") (R "1"))) 
-                (\w (df:: DFA Int) -> evaluate df w == evaluate (func df) w )) where
+                (\w -> evaluate dfa2 w == evaluate (func dfa2) w &&  evaluate zeroStart w == evaluate (func zeroStart) w)) where
                     func = enfToDf . regExpToENFA . transDFAtoRegExp
 
 \end{code}
+
 
 %To also find out which part of your program is actually used for these tests,
 %run \verb|stack clean && stack test --coverage|. Then look for ``The coverage
