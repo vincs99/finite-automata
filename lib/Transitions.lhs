@@ -14,8 +14,9 @@ import Data.Maybe (fromJust)
 
 nfToDf:: (Eq a, Ord a) => NFA a -> DFA [a]
 nfToDf (NFA sts alph del strt ac) = 
-  DFA (subsequences sts) alph del' [strt] [st | st <- subsequences sts,  intersect st ac /= []] where
+  DFA sortedStates alph del' (sort [strt]) [st | st <- sortedStates,  intersect st ac /= []] where
     del' sy ls = unionL [del sy l | l <- ls] 
+    sortedStates = map sort $ subsequences sts
 \end{code}
 
 We extend the powerset construction for $\epsilon$-NFA-s.
@@ -23,8 +24,9 @@ We extend the powerset construction for $\epsilon$-NFA-s.
 \begin{code}
 enfToDf:: (Eq a, Ord a) => ENFA a -> DFA [a]
 enfToDf (ENFA sts alph del eps strt ac) = let nf = ENFA sts alph del eps strt ac in 
-  DFA (subsequences sts) alph del' (rtClose nf [strt]) [st | st <- subsequences sts,  intersect st ac /= []] where
+  DFA sortedStates alph del' (rtClose nf (sort [strt])) [st | st <- sortedStates,  intersect st ac /= []] where
     del' sy ls = let nf = ENFA sts alph del eps strt ac in rtClose nf ( unionL [del sy l | l <- ls] )
+    sortedStates = map sort $ subsequences sts
                                                               
 \end{code}
 
