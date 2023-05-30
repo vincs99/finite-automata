@@ -41,13 +41,12 @@ We write a toy example DFA on the alphabet $\Sigma = \{0, 1\}$ computing the lan
 
 \begin{code}
 zeroStart:: DFA Int
-zeroStart = DFA [0,1,2] ['0', '1'] deltazero 0 [1] where
+zeroStart = DFA [0,1] ['0', '1'] deltazero 0 [1] where
     deltazero:: Symbol -> Int -> Int
     deltazero char st
      | st == 0 && char == '0' = 1
-     | st == 0 && char == '1' = 2
+     | st == 0 && char == '1' = 0
      | st == 1 = 1
-     | st == 2 = 2
      | otherwise = -1
 \end{code}
 
@@ -77,7 +76,7 @@ randomDelta (sym:syms) ds ps = do
 instance Arbitrary (DFA Int) where
     arbitrary = do
         -- choose a set of up to 10 worlds:
-        sts <- (\ ws -> 0:ws) <$> sublistOf [1..5]
+        sts <- (0:) <$> sublistOf [1]
         let sym = ['0', '1']
         delt <- randomDelta sym sts sts
         strt <- elements sts

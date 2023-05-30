@@ -54,14 +54,14 @@ Note we exclude the Empty expression from the generation, as we cannot generate 
 instance Arbitrary RegExp where
   arbitrary = sized randomReg where
     randomReg :: Int -> Gen RegExp
-    randomReg 0 = elements [Epsilon]
+    randomReg 0 = return Epsilon
     randomReg n = oneof [ R <$> elements ["0", "1"]
-                          , Star <$> randomReg (n `div` 2)
-                          , Plus <$> randomReg (n `div` 2)
-                          , Con <$> randomReg (n `div` 2)
-                          <*> randomReg (n `div` 2) 
-                          , Union <$> randomReg (n `div` 2)
-                          <*> randomReg (n `div` 2)]
+                          , Star <$> randomReg (n `div` 8)
+                          , Plus <$> randomReg (n `div` 8)
+                          , Con <$> randomReg (n `div` 8)
+                          <*> randomReg (n `div` 8) 
+                          , Union <$> randomReg (n `div` 8)
+                          <*> randomReg (n `div`8)]
 
 \end{code}
 
