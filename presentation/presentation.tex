@@ -1,0 +1,87 @@
+\documentclass[aspectratio=169]{beamer}
+\usepackage{listings}
+
+% Haskell code listings in our own style
+\usepackage{listings,color}
+\definecolor{lightgrey}{gray}{0.35}
+\definecolor{darkgrey}{gray}{0.20}
+\definecolor{lightestyellow}{rgb}{1,1,0.92}
+\definecolor{dkgreen}{rgb}{0,.2,0}
+\definecolor{dkblue}{rgb}{0,0,.2}
+\definecolor{dkyellow}{cmyk}{0,0,.7,.5}
+\definecolor{lightgrey}{gray}{0.4}
+\definecolor{gray}{gray}{0.50}
+\lstset{
+	language        = Haskell,
+	basicstyle      = \scriptsize\ttfamily,
+	keywordstyle    = \color{dkblue},     stringstyle     = \color{red},
+	identifierstyle = \color{dkgreen},    commentstyle    = \color{gray},
+	showspaces      = false,              showstringspaces= false,
+	rulecolor       = \color{gray},       showtabs        = false,
+	tabsize         = 8,                  breaklines      = true,
+	xleftmargin     = 8pt,                xrightmargin    = 8pt,
+	frame           = single,             stepnumber      = 1,
+	aboveskip       = 4pt plus 2pt,
+	belowskip       = 6pt plus 2pt,
+}
+\lstnewenvironment{code}[0]{}{}
+
+\title{Finite Automata in Haskell}
+\author{V. Velkey, W. Vromen}
+\date{\today}
+
+
+\begin{document}
+	\begin{frame}
+		\titlepage
+	\end{frame}
+	\begin{frame}{Overview}
+		\begin{itemize}
+			\item Theory overview: DFA-s, NFA-s, $\epsilon$-NFA-s, Regular expressions
+			\item DFA -s: implementation, evaluation of words
+			\item NFA-s and $\epsilon$-NFA-s: implementation, evaluation
+			\item Powerset construction: $\epsilon$-NFA to DFA
+			\item RegExp: implementation, word generation
+			\item DFA to RegExp
+			\item RegExp to $\epsilon$-NF
+		\end{itemize}
+		
+	\end{frame}
+	\begin{frame}[fragile]{DFA -s: implementation, evaluation of words}	
+		Design choice: words with unknown symbols will be \textit{rejected}. 
+	
+	 \begin{code}
+type Symbol = Char
+data DFA a = DFA { states :: [a] 
+	, alphabet:: [Symbol]
+	, delta :: Symbol -> a -> a
+	,  start:: a
+	, acceptstate:: [a]}
+		
+evaluate:: (Eq a, Ord a) => DFA a -> String -> Bool
+evaluate df st = all (`elem` alphabet df) st && -- all characters in string are in the alpahbet
+		stateArr (start df) st `elem` acceptstate df where 
+		  stateArr  q [] = q
+		  stateArr q (x:xs) = stateArr (delta df x q) xs
+	
+	\end{code}
+	\end{frame}
+	\begin{frame}[fragile]{NFA implementation}
+Transitioning between lists of states: double recursion. 		
+		\begin{code}
+data NFA a= NFA { statesNF :: [a]
+	, alphabetNF:: [Symbol]
+	, deltaNF :: Symbol -> a -> [a]
+	, startNF:: a
+	, acceptstateNF:: [a]}
+	
+evaluateNF:: Eq a => NFA a-> String -> Bool
+evaluateNF nf st = all (`elem` alphabetNF nf) st && -- captures elements of string in alphabet
+		any (`elem` acceptstateNF nf) (stateArrNF' [startNF nf] st)  where
+		  stateArrNF'  qs [] = qs
+		  stateArrNF'  [] _ = []
+		  stateArrNF'  [q] (x:xs) = stateArrNF' (deltaNF nf x q) xs --recursion on string
+		  stateArrNF'  (q:qs) (x:xs) = stateArrNF' [q] (x : xs) `union` stateArrNF' qs (x : xs) --recursion on statespace
+		\end{code}
+	\end{frame}
+\end{document}

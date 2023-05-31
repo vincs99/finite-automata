@@ -1,0 +1,17 @@
+\frametitle{NFA implementation}
+Transitioning between lists of states: double recursion. 		
+		\begin{code}
+data NFA a= NFA { statesNF :: [a]
+	, alphabetNF:: [Symbol]
+	, deltaNF :: Symbol -> a -> [a]
+	, startNF:: a
+	, acceptstateNF:: [a]}
+	
+evaluateNF:: Eq a => NFA a-> String -> Bool
+evaluateNF nf st = all (`elem` alphabetNF nf) st && -- captures elements of string in alphabet
+		any (`elem` acceptstateNF nf) (stateArrNF' [startNF nf] st)  where
+		  stateArrNF'  qs [] = qs
+		  stateArrNF'  [] _ = []
+		  stateArrNF'  [q] (x:xs) = stateArrNF' (deltaNF nf x q) xs --recursion on string
+		  stateArrNF'  (q:qs) (x:xs) = stateArrNF' [q] (x : xs) `union` stateArrNF' qs (x : xs) --recursion on statespace
+		\end{code}
