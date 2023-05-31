@@ -121,7 +121,7 @@ test2ENF = quickCheck (forAll (generateString (Union Epsilon (Con (R "1") (Star 
 \end{code}
 
 We now test the powerset construction. We test if an NFA accepts the same binary strings as
-its powerset construct. We repeat for ENFA-s.
+its powerset construct. We repeat for ENFA-s. We generate arbitrary NFA-s and ENFA-s for this.
 \begin{code}
 test1PowNF :: IO ()
 test1PowNF = quickCheck (forAll (generateString (Union (R "0") (R "1"))) 
@@ -134,7 +134,7 @@ test1PowENF = quickCheck (forAll (generateString (Union (R "0") (R "1")))
 
 We now test the transition from DFA to RegExp. We check whether a DFA accepts words generated from
 the corresponding RegExp and that it does not accept words generated from the RegExp corresponding to 
-the complement DFA.
+the complement DFA. We generate arbitrary DFA-s for this. 
 
 \begin{code}
 test1DFtoReg :: IO ()
@@ -147,7 +147,7 @@ test2DFtoReg = quickCheck ( \ (df:: DFA Int) -> if transDFAtoRegExp (flipDFA df)
 \end{code}
 
 We now test the transition from RegExp to $\epsilon$-NFA. We check whether the $\epsilon$-NFA corresponding
-to a RegExp accepts words generated from the RegExp. 
+to a RegExp accepts words generated from the RegExp. We generate arbitrary RegExps- for this.
 
 \begin{code}
 test1RegtoENF :: IO ()
@@ -155,7 +155,7 @@ test1RegtoENF = quickCheck ( \ (reg:: RegExp) -> forAll (generateString reg)
                         (\w -> regExpToENFA reg `evaluateENF` w))
 \end{code}
 
-We put everything together and test wether a DFA and the DFA obtained from transitioning to RegExp, 
+We put everything together and test whether a DFA and the DFA obtained from transitioning to RegExp, 
 then to $\epsilon$-NFA and back to DFA are equivalent. We test it on our two example DFA-s.
 We also calculate complement RegExp-s by flipping the corresponding DFA accept states
 and test for a for 2 RegExps that they don't generate the same words.
