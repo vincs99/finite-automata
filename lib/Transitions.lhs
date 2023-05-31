@@ -12,8 +12,8 @@ import ENFA
 import RegExp
 import Data.Maybe (fromJust)
 
-nfToDf:: (Eq a, Ord a) => NFA a -> DFA [a]
-nfToDf (NFA sts alph del strt ac) = 
+nfaToDFA:: (Eq a, Ord a) => NFA a -> DFA [a]
+nfaToDFA (NFA sts alph del strt ac) = 
   DFA sortedStates alph del' (sort [strt]) [st | st <- sortedStates,  intersect st ac /= []] where
     del' sy ls = unionL [del sy l | l <- ls] 
     sortedStates = map sort $ subsequences sts
@@ -22,8 +22,8 @@ nfToDf (NFA sts alph del strt ac) =
 We extend the powerset construction for $\epsilon$-NFA-s.
 
 \begin{code}
-enfToDf:: (Eq a, Ord a) => ENFA a -> DFA [a]
-enfToDf (ENFA sts alph del eps strt ac) = let nf = ENFA sts alph del eps strt ac in 
+enfaToDFA:: (Eq a, Ord a) => ENFA a -> DFA [a]
+enfaToDFA (ENFA sts alph del eps strt ac) = let nf = ENFA sts alph del eps strt ac in 
   DFA sortedStates alph del' (rtClose nf (sort [strt])) [st | st <- sortedStates,  intersect st ac /= []] where
     del' sy ls = let nf = ENFA sts alph del eps strt ac in rtClose nf ( unionL [del sy l | l <- ls] )
     sortedStates = map sort $ subsequences sts
@@ -99,8 +99,8 @@ makeIntDFA dfa = DFA sts alph delt strt acceptst
         indX s = fromJust (elemIndex s (states dfa)) + 1
 
 -- simplify to make the result a bit more readable 
-transDFAtoRegExp :: (Eq a, Ord a) => DFA a -> RegExp
-transDFAtoRegExp dfa = simplify $ regExpUnion [rijk dfaInt (start dfaInt) f (length $ states dfa) | f <- acceptstate dfaInt ]
+dfaToRegExp :: (Eq a, Ord a) => DFA a -> RegExp
+dfaToRegExp dfa = simplify $ regExpUnion [rijk dfaInt (start dfaInt) f (length $ states dfa) | f <- acceptstate dfaInt ]
   where dfaInt = makeIntDFA dfa
 
 -- Here is the magic from the notes:

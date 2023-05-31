@@ -66,13 +66,13 @@ qc4 :: IO ()
 qc4 = qc zeroStart (Star (Union (R "a") (R "1"))) 100
 
 reg' :: RegExp
-reg' = transDFAtoRegExp zeroStart
+reg' = dfaToRegExp zeroStart
 
 enf :: ENFA Int
 enf = regExpToENFA reg' 
 
 df :: DFA [Int]
-df = enfToDf enf
+df = enfaToDFA enf
 
 
 

@@ -125,11 +125,11 @@ its powerset construct. We repeat for ENFA-s.
 \begin{code}
 test1PowNF :: IO ()
 test1PowNF = quickCheck (forAll (generateString (Union (R "0") (R "1"))) 
-                            (\w (enf:: NFA Int) -> evaluateNF enf w == evaluate (nfToDf enf) w) )
+                            (\w (enf:: NFA Int) -> evaluateNF enf w == evaluate (nfaToDFA enf) w) )
 
 test1PowENF :: IO ()
 test1PowENF = quickCheck (forAll (generateString (Union (R "0") (R "1"))) 
-                            (\w (enf:: ENFA Int) -> evaluateENF enf w == evaluate (enfToDf enf) w) )
+                            (\w (enf:: ENFA Int) -> evaluateENF enf w == evaluate (enfaToDFA enf) w) )
 \end{code}
 
 We now test the transition from DFA to RegExp. We check whether a DFA accepts words generated from
@@ -138,12 +138,12 @@ the complement DFA.
 
 \begin{code}
 test1DFtoReg :: IO ()
-test1DFtoReg = quickCheck (\ (df:: DFA Int) -> if transDFAtoRegExp df /= Empty then 
-                forAll (generateString (transDFAtoRegExp df)) (\w -> df `evaluate` w) else property True)
+test1DFtoReg = quickCheck (\ (df:: DFA Int) -> if dfaToRegExp df /= Empty then 
+                forAll (generateString (dfaToRegExp df)) (\w -> df `evaluate` w) else property True)
 
 test2DFtoReg :: IO ()
-test2DFtoReg = quickCheck ( \ (df:: DFA Int) -> if transDFAtoRegExp (flipDFA df) /= Empty then 
-                forAll (generateString (transDFAtoRegExp (flipDFA df))) (not . evaluate df ) else property True)
+test2DFtoReg = quickCheck ( \ (df:: DFA Int) -> if dfaToRegExp (flipDFA df) /= Empty then 
+                forAll (generateString (dfaToRegExp (flipDFA df))) (not . evaluate df ) else property True)
 \end{code}
 
 We now test the transition from RegExp to $\epsilon$-NFA. We check whether the $\epsilon$-NFA corresponding
@@ -163,16 +163,16 @@ and test for a for 2 RegExps that they don't generate the same words.
 test1DFeqv :: IO ()
 test1DFeqv = quickCheck (forAll (generateString (Union (R "0") (R "1"))) 
                 (\w -> evaluate dfa2 w == evaluate (func dfa2) w &&  evaluate zeroStart w == evaluate (func zeroStart) w)) where
-                    func = enfToDf . regExpToENFA . transDFAtoRegExp
+                    func = enfaToDFA . regExpToENFA . dfaToRegExp
 
 test1CompRegx :: IO ()
 test1CompRegx = quickCheck (forAll (generateString reg) (\w -> forAll (generateString (creg reg))(/= w))) where
-                    creg = transDFAtoRegExp . makeIntDFA . flipDFA . enfToDf . regExpToENFA
+                    creg = dfaToRegExp . makeIntDFA . flipDFA . enfaToDFA . regExpToENFA
                     reg = Union Epsilon (Con (R "1") (Star (Union (R "0") (R "1"))))
 
 test2CompRegx :: IO ()
 test2CompRegx = quickCheck (forAll (generateString reg) (\w -> forAll (generateString (creg reg))(/= w))) where
-                    creg = transDFAtoRegExp . makeIntDFA . flipDFA . enfToDf . regExpToENFA
+                    creg = dfaToRegExp . makeIntDFA . flipDFA . enfaToDFA . regExpToENFA
                     reg = Con (Star (R "2")) (Con (R "0") (R "0"))
 \end{code}
 
