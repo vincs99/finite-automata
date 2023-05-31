@@ -75,6 +75,15 @@ df :: DFA [Int]
 df = enfaToDFA enf
 
 
+t :: DFA Int 
+t = DFA [0,1,2] "01" del 0 [0,2] where
+  del '0' 0 = 0
+  del '0' 1 = 0
+  del '0' 2 = 2
+  del '1' 0 = 0
+  del '1' 1 = 0
+  del '1' 2 = 1
+  del _ _ = undefined
 
 
 

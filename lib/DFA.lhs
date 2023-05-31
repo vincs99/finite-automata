@@ -56,19 +56,19 @@ Some transforms of a DFA.
 flipDFA :: (Eq a, Ord a) => DFA a -> DFA a
 flipDFA (DFA sts alp del st acc) = DFA sts alp del st (sts \\ acc)
 
-reachable :: Eq a => DFA a -> a -> Bool
-reachable dfa s = s `elem` reachableInSteps (length $ states dfa) where
-  reachableInSteps 0 = [start dfa]
-  reachableInSteps n = nub $ concatMap allSuccessors (reachableInSteps (n-1))
+reachables :: Eq a => DFA a -> [a] 
+reachables dfa = reachableInSteps [start dfa] where
+  reachableInSteps ts | all (`elem` ts) (concatMap allSuccessors ts) = ts
+                     | otherwise = reachableInSteps (nub $ ts ++ concatMap allSuccessors ts)
   allSuccessors st = nub (st : [delta dfa sym st | sym <- alphabet dfa])
 
 
 cutDFA :: Eq a => DFA a -> DFA a  
 cutDFA d = DFA sts alp delt strt acc where
-  sts = filter (reachable d) (states d)
+  sts = reachables d
   alp = alphabet d
   strt = start d
-  acc = filter (reachable d) (acceptstate d)
+  acc = reachables d `intersect` acceptstate d
   delt = delta d 
 
 \end{code}
