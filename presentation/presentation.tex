@@ -47,6 +47,70 @@
 		\end{itemize}
 		
 	\end{frame}
+	\begin{frame}{Theory Introduction - Regular Languages}
+		\begin{itemize}
+			\setlength\itemsep{2em}
+			\item Regular languages: "read-only computation"
+			\begin{itemize}
+				\setlength\itemsep{2em}
+				\item  Starting point of formal language theory
+			\end{itemize}
+			\item Equivalent characterisations: Finite Automata, Regular expressions
+			\item Goal of project: formalise their equivalence in Haskell
+		\end{itemize}
+	\end{frame}
+	\begin{frame}{Theory - DFA-s}
+		\begin{figure}
+			\centering
+			\includegraphics[scale = 0.5]{dfa_graphical_representation.jpg}
+			%\caption{Example for combinatorial represenation}
+			%\label{fig:my_label}
+		\end{figure}
+		Formal definition: $(Q_n, \Sigma, \delta_n, q_0, F_n)$
+		\begin{itemize}
+			\item $Q_n$ set of states
+			\item $\Sigma$ alphabet
+			\item $\delta_n$ transition function (between states): $\delta (\mathrm{st}, \mathrm{sym}) = \mathrm{st}' $
+			\item $q_0$ start state
+			\item $F_n$ set of accept states
+		\end{itemize}
+	\end{frame}
+	\begin{frame}{Theory - NFA-s, $\epsilon$-NFA-s}
+		NFA-s:
+		\begin{itemize}
+			\item can transition to multiple states
+			\item Accept: if at least one path at accept
+		\end{itemize}
+		$\epsilon$-NFA-s: 
+		\begin{itemize}
+			\item Can transition between states without moving along the word
+		\end{itemize}
+		\begin{figure}
+			\centering
+			\includegraphics[scale = 0.5]{enfa.png}
+			%\caption{Example for combinatorial represenation}
+			%\label{fig:my_label}
+		\end{figure}
+	\end{frame}
+	\begin{frame}{Theory - Regular expressions}
+		Algebraic (recursive) way to build languages
+		\begin{itemize}
+			\item $\emptyset$, defines $L(\emptyset) = \emptyset$.
+			\item $\epsilon$, defines $L(\epsilon) = \{\epsilon\}$
+			\item $a$, defines $L(a) = \{a\}$
+			\item $E\cup F$, defines $L(E\cup F) = L(E) \cup L(F)$
+			\item $EF$, defines $L(E)L(F)$ (concatenation)
+			\item $E^*$ defines $L(E^*) = L(E)^* = \bigcup_{n\geq 0} L(E)^n$
+		\end{itemize}
+	\end{frame}
+	\begin{frame}{Theory - Equivalence}
+		\begin{itemize}
+			\setlength\itemsep{2em}
+			\item For every $\epsilon$-NFA, there is an equivalent DFA (powerset construction below)
+			\item For every	DFA there is an regular expression with the same language ($R_{i, j, k}$ construction below)
+			\item For every RegExp, there is an $\epsilon$-NFA on the same language (regExpToENFA)
+		\end{itemize}
+	\end{frame}
 	\begin{frame}[fragile]{DFA -s: implementation, evaluation of words}	
 		Design choice: words with unknown symbols will be \textit{rejected}. 
 	
@@ -66,6 +130,28 @@ evaluate df st = all (`elem` alphabet df) st && -- all characters in string are 
 	
 	\end{code}
 	\end{frame}
+	\begin{frame}[fragile]{DFA Arbitrary}
+		To generate functions: use idea from HW2
+		\begin{code}
+randomDelta :: (Eq a, Ord a, Arbitrary a) => [Symbol] -> [a] -> [a] -> Gen (Symbol -> a -> a)
+randomDelta [] _ _ = return (const undefined)
+randomDelta (sym:syms) ds ps = do 
+f <- randomDelta syms ds ps
+wResult <- randomFunFromTo ds ps
+return $ \sy -> if sy == sym then wResult else f sy
+
+instance Arbitrary (DFA Int) where
+arbitrary = do
+-- choose a set of up to 4 worlds:
+sts <- (0 :) <$> sublistOf [1..3]
+let sym = ['0', '1']
+delt <- randomDelta sym sts sts
+strt <- elements sts
+accraw <-  sublistOf sts
+let acc = nub (0:accraw)
+return $ DFA sts sym delt strt acc
+		\end{code}
+	\end{frame}
 	\begin{frame}[fragile]{NFA implementation}
 Transitioning between lists of states: double recursion. 		
 		\begin{code}
@@ -84,11 +170,6 @@ evaluateNF nf st = all (`elem` alphabetNF nf) st && -- captures elements of stri
 		  stateArrNF'  (q:qs) (x:xs) = stateArrNF' [q] (x : xs) `union` stateArrNF' qs (x : xs) --recursion on statespace
 		\end{code}
 	\end{frame}
-	
-
-\input{presentationWouter.tex}	
-
-
 	\begin{frame}[fragile]{$\epsilon$-NFA-s}
 
 			 Design choice: $\epsilon$-transitions represented as list of tuple - ease with transitive closure			
@@ -124,6 +205,51 @@ rtClose nf qs = sort (unionL [[p | p <- statesENF nf , (q, p) `elem` trClose rcl
 					\item  transition function: $\delta_D(R, \sigma) = \mathrm{ecl}(\cup_{s\in R} \delta_N(s, \sigma))$
 				\end{itemize}
 		\end{itemize}
-		
+		\end{frame}
+		\begin{frame}[fragile]{Powerset construction - implementation}
+			For $\epsilon$-NFAs: 
+			\begin{code}
+enfaToDFA:: (Eq a, Ord a) => ENFA a -> DFA [a]
+enfaToDFA (ENFA sts alph del eps strt ac) = let nf = ENFA sts alph del eps strt ac in 
+cutDFA $ DFA sortedStates alph del' (rtClose nf (sort [strt])) [st | st <- sortedStates,  intersect st ac /= []] where
+del' sy ls = let nf = ENFA sts alph del eps strt ac in rtClose nf ( unionL [del sy l | l <- ls] )
+sortedStates = map sort $ subsequences sts
+			\end{code}
+			\begin{itemize}
+				\item  Problem: By definition, exponential-size DFA
+				\item Working with the output DFA ($~2^{19}$ states): unfeasible
+				\item Workaround: cutDFA - only work with states reachable from start state
+				\item  Even better: construct \textit{minimal} equivalent DFA
+				\begin{itemize}
+					\item Not too efficient
+				\end{itemize}
+			\end{itemize}
+		\end{frame}
+	\input{presentationWouter.tex}	
+	\begin{frame}[fragile]{Tests}
+		\begin{code}
+"ZeroStart accepts words starting with 0:"
++++ OK, passed 100 tests.
+"ZeroStart does not accept other words:"
++++ OK, passed 100 tests.
+"Powerset construction yields equivalent DFA for ENFA:"
++++ OK, passed 100 tests.
+"DFA accepts words generated by the corresponding RegExp:"
++++ OK, passed 100 tests.
+"DFA does not accept words generated by the RegExp corresponding to the complement DFA:"
++++ OK, passed 100 tests.
+"ENFA corresponding to RegExp accepts words generated from RegExp:"
++++ OK, passed 100 tests.
+"Minimize doesn't yield more states"
++++ OK, passed 100 tests.
+"cutDFA dfa accepts and rejects the same as dfa"
++++ OK, passed 100 tests.
+"The reverse of the reverse is isomorphic to the original"
++++ OK, passed 100 tests.
+"Minimize yields an automaton that accepts and rejects the same words:"
++++ OK, passed 100 tests.
+"Composition of transitions yields equivalent DFA for DFA:"
++++ OK, passed 100 tests.
+\end{code}
 	\end{frame}
 \end{document}
