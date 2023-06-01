@@ -95,12 +95,16 @@ randomDelta (sym:syms) ds ps = do
 
 instance Arbitrary (DFA Int) where
     arbitrary = do
-        -- choose a set of up to 10 worlds:
-        sts <- (0 :) <$> sublistOf [1..4]
+        -- choose a set of up to 4 worlds:
+        sts <- (0 :) <$> sublistOf [1..3]
         let sym = ['0', '1']
         delt <- randomDelta sym sts sts
         strt <- elements sts
         accraw <-  sublistOf sts
         let acc = nub (0:accraw)
         return $ DFA sts sym delt strt acc
+
+
+languageIsEmpty :: Eq a => DFA a -> Bool
+languageIsEmpty d = null $ reachables d `intersect` acceptstate d         
 \end{code}

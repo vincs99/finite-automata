@@ -102,8 +102,8 @@ makeIntDFA dfa = DFA sts alph delt strt acceptst
 
 -- simplify to make the result a bit more readable 
 dfaToRegExp :: (Eq a, Ord a) => DFA a -> RegExp
-dfaToRegExp dfa = simplify $ regExpUnion [rijk dfaInt (start dfaInt) f (length $ states dfa) | f <- acceptstate dfaInt ]
-  where dfaInt = makeIntDFA dfa
+dfaToRegExp dfa = simplify $ regExpUnion [rijk dfaInt (start dfaInt) f (length $ states dfaInt) | f <- acceptstate dfaInt ]
+  where dfaInt = (makeIntDFA . minimizeDFA) dfa
 
 -- Here is the magic from the notes:
 rijk :: DFA Int -> Int -> Int -> Int -> RegExp

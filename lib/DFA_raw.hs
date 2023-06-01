@@ -84,3 +84,11 @@ t = DFA [0,1,2] "01" del 0 [0] where
   del '1' 1 = 2
   del '1' 2 = 2
   del _ _ = undefined
+
+
+te :: IO ()
+te = do 
+  r <- generate (arbitrary:: Gen RegExp)
+  print (pRegExp r)
+  print $ (minimizeDFA .  enfaToDFA .  regExpToENFA) r
+  return ()

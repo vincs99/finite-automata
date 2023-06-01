@@ -47,16 +47,20 @@ main = do
     test1CompRegx
     print "Complement on different RegExp:"
     test2CompRegx
-    print "Reverse works"
+    print "The reverse of the reverse accepts and rejects the same words:"
     test1ReverseDFA
-    print "Minimize yields equivalent automaton:"
+    print "The reverse of the reverse is isomorphic to the original"
+    test2ReverseDFA
+    print "Minimize yields an automaton that accepts and rejects the same words:"
     test1MinimizeDFA
-
-    --test2MinimizeDFA    
-    print "Minimize minimizes"
-    test3MinimizeDFA
-    print "cutDFA yields equivalent automaton"
+    print "Minimised automata generated from a RegExp accept words from said RegExp"
+    testMinimizeMore
+    print "Minimize doesn't yield more states"
+    test2MinimizeDFA
+    print "cutDFA dfa accepts and rejects the same as dfa"
     test1CutDFA
+    print "Automata generated from a RegExp accept word from said RegExp"
+    testUltimate
 
     
 \end{code}
@@ -175,6 +179,8 @@ test1DFeqv = quickCheck (forAll (generateString (Union (R "0") (R "1")))
                 (\w -> evaluate dfa2 w == evaluate (func dfa2) w &&  evaluate zeroStart w == evaluate (func zeroStart) w)) where
                     func = enfaToDFA . regExpToENFA . dfaToRegExp
 
+
+
 test1CompRegx :: IO ()
 test1CompRegx = quickCheck (forAll (generateString reg) (\w -> forAll (generateString (creg reg))(/= w))) where
                     creg = dfaToRegExp . makeIntDFA . flipDFA . enfaToDFA . regExpToENFA
@@ -185,19 +191,29 @@ test2CompRegx = quickCheck (forAll (generateString reg) (\w -> forAll (generateS
                     creg = dfaToRegExp . makeIntDFA . flipDFA . enfaToDFA . regExpToENFA
                     reg = Con (Star (R "2")) (Con (R "0") (R "0"))
 
+
+
 test1ReverseDFA :: IO ()
 test1ReverseDFA = quickCheck (\r (d:: DFA Int)  -> forAll (generateString r) (\w -> d `evaluate` w == (reverseDFA . reverseDFA ) d `evaluate` w ))
+test2ReverseDFA :: IO ()
+test2ReverseDFA = quickCheck (\(d :: DFA Int) -> brzozowski d ((reverseDFA . reverseDFA) d) )
 test1MinimizeDFA :: IO ()
 test1MinimizeDFA = quickCheck (\r (d :: DFA Int) -> forAll (generateString r) (\w -> d `evaluate` w == minimizeDFA d `evaluate` w ))
 test2MinimizeDFA :: IO ()
-test2MinimizeDFA = quickCheck (\ (d:: DFA Int) ->  brzozowski d (minimizeDFA d))
+test2MinimizeDFA = quickCheck (\ (d :: DFA Int) -> length (states d) >= length (states (minimizeDFA d)))
 
-test3MinimizeDFA :: IO ()
-test3MinimizeDFA = quickCheck (\ (d :: DFA Int) -> length (states d) >= length (states (minimizeDFA d)))
+testMinimizeMore :: IO ()
+testMinimizeMore = quickCheck (\r -> forAll (generateString r) (\w -> (minimizeDFA . enfaToDFA . regExpToENFA) r `evaluate` w))  
 
 
 test1CutDFA :: IO ()
 test1CutDFA = quickCheck (\r (d :: DFA Int) -> forAll (generateString r) (\w -> d `evaluate` w == cutDFA d `evaluate` w ))
+
+
+testUltimate :: IO ()
+testUltimate = quickCheck (\(d :: DFA Int) -> if not (languageIsEmpty d) then 
+  forAll (generateString (dfaToRegExp d)) (\w -> d `evaluate` w)
+  else property True )
 
 \end{code}
 
