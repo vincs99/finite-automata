@@ -1,8 +1,26 @@
+<<<<<<< HEAD
 \frametitle{RegExp implementation: data type}
 \begin{code}
 data RegExp = Empty | Epsilon | R [Symbol] | Union RegExp RegExp
               | Star RegExp | Con RegExp RegExp | Plus RegExp
   deriving (Show, Eq)
+=======
+\frametitle{$\epsilon $-NFA-s}
+
+			 Design choice: $\epsilon$-transitions represented as list of tuple - ease with transitive closure			
+		\begin{code}
+data ENFA a = ENFA { statesENF :: [a]
+	, alphabetENF:: [Symbol]
+	, deltaENF :: Symbol -> a -> [a]
+	, epTrans:: [(a, a)]
+	, startENF:: a
+	, acceptstateENF:: [a]}
+	
+rtClose:: (Eq a, Ord a) => ENFA a -> [a] -> [a]
+rtClose nf qs = sort (unionL [[p | p <- statesENF nf , (q, p) `elem` trClose rcl ] | q<- qs] ) where
+	rcl = refClose (statesENF nf) (epTrans nf)			
+				
+>>>>>>> 3d23e86 (some work on presentation)
 		\end{code}
 	Design choices:
 	\begin{itemize}

@@ -86,8 +86,48 @@ evaluateNF nf st = all (`elem` alphabetNF nf) st && -- captures elements of stri
 		\end{code}
 	\end{frame}
 	
+<<<<<<< HEAD
 \input{presentationWouter}	
 	
 	
 	
+=======
+	\begin{frame}[fragile]{$\epsilon$-NFA-s}
+
+			 Design choice: $\epsilon$-transitions represented as list of tuple - ease with transitive closure			
+		\begin{code}
+data ENFA a = ENFA { statesENF :: [a]
+	, alphabetENF:: [Symbol]
+	, deltaENF :: Symbol -> a -> [a]
+	, epTrans:: [(a, a)]
+	, startENF:: a
+	, acceptstateENF:: [a]}
+	
+rtClose:: (Eq a, Ord a) => ENFA a -> [a] -> [a]
+rtClose nf qs = sort (unionL [[p | p <- statesENF nf , (q, p) `elem` trClose rcl ] | q<- qs] ) where
+	rcl = refClose (statesENF nf) (epTrans nf)			
+				
+		\end{code}
+	\end{frame}
+	\begin{frame}{The powerset construction - definition}
+		\begin{itemize}
+			\item Take NFA $N = (Q_n, \Sigma, \delta_n, q_0, F_n)$
+			\item Powerset construct: $D = (\mathcal{P}(Q_n), \Sigma, \delta, S, F_D )$
+			\begin{itemize}
+				\item States: subsets of $Q_n$
+				\item Alphabet: same (of course)
+				\item transition function: $\delta_D(R, \sigma) = \cup_{s\in R} \delta_N(s, \sigma)$
+				\item Start state: singleton with previous start state
+				\item Accept states: $\{R\subset Q_N \colon S\cap F_n \neq \emptyset\}$
+			\end{itemize}
+			\item For $\epsilon$-NFA: \\
+			Similar idea, but at each step, need to take  $\epsilon$-closure at steps
+				\begin{itemize}
+					\item  Start state $\mathrm{ecl}(\{q_0\})$
+					\item  transition function: $\delta_D(R, \sigma) = \mathrm{ecl}(\cup_{s\in R} \delta_N(s, \sigma))$
+				\end{itemize}
+		\end{itemize}
+		
+	\end{frame}
+>>>>>>> 3d23e86 (some work on presentation)
 \end{document}
