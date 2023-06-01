@@ -84,18 +84,3 @@ t = DFA [0,1,2] "01" del 0 [0] where
   del '1' 1 = 2
   del '1' 2 = 2
   del _ _ = undefined
-
-test2ReverseDFA :: IO ()
-test2ReverseDFA = quickCheck (\r (d:: DFA Int)  -> forAll (generateString r) (\w -> d `evaluate` w == (reverseDFA . reverseDFA ) d `evaluate` w ))
-
-test2MinimizeDFA :: IO ()
-test2MinimizeDFA = quickCheck (\ (d:: DFA Int) -> within 10000000 $ brzozowski d (minimizeDFA d))
-
-
-b :: IO ()
-b = verboseCheck (\ (d :: DFA Int) -> within 1000000 $ brzozowski d ((reverseDFA . reverseDFA) d))  
-
-
-
-
- 

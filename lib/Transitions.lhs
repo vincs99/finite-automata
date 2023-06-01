@@ -154,13 +154,14 @@ singleAccept d = ENFA sts alph delt ep st acc where
     st = start d'
     acc = [newAccept]
 
+-- Checks whether the reachable states of two DFA's are Isomorphic
 brzozowski :: (Ord a, Ord b) => DFA a -> DFA b -> Bool
 brzozowski d d' = alphabet d == alphabet d' && 
   (null (acceptstate m) && null (acceptstate m')) ||
    isIsomorphTo (start m) (start m') [] where
     m = minimizeDFA d
     m' = minimizeDFA d'
-    isIsomorphTo s s' is = (s,s') `elem` is || 
-      (s `elem` acceptstate m) == (s' `elem` acceptstate m') &&
+    isIsomorphTo s s' is = 
+      (s,s') `elem` is || (s `elem` acceptstate m) == (s' `elem` acceptstate m') &&
       all (\sym -> isIsomorphTo (delta m sym s) (delta m' sym s') ((s,s'):is)) (alphabet m) 
 \end{code}

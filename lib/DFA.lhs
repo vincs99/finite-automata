@@ -96,7 +96,7 @@ randomDelta (sym:syms) ds ps = do
 instance Arbitrary (DFA Int) where
     arbitrary = do
         -- choose a set of up to 10 worlds:
-        sts <- (0 :) <$> sublistOf [1..3]
+        sts <- (0 :) <$> sublistOf [1..4]
         let sym = ['0', '1']
         delt <- randomDelta sym sts sts
         strt <- elements sts
