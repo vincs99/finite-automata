@@ -86,16 +86,10 @@ evaluateNF nf st = all (`elem` alphabetNF nf) st && -- captures elements of stri
 		\end{code}
 	\end{frame}
 	
-<<<<<<< Updated upstream
-<<<<<<< HEAD
-\input{presentationWouter}	
-=======
+
 \input{presentationWouter.tex}	
->>>>>>> Stashed changes
-	
-	
-	
-=======
+
+
 	\begin{frame}[fragile]{$\epsilon$-NFA-s}
 
 			 Design choice: $\epsilon$-transitions represented as list of tuple - ease with transitive closure			
@@ -133,5 +127,4 @@ rtClose nf qs = sort (unionL [[p | p <- statesENF nf , (q, p) `elem` trClose rcl
 		\end{itemize}
 		
 	\end{frame}
->>>>>>> 3d23e86 (some work on presentation)
 \end{document}

@@ -1,11 +1,3 @@
-<<<<<<< Updated upstream
-<<<<<<< HEAD
-\frametitle{RegExp implementation: data type}
-\begin{code}
-data RegExp = Empty | Epsilon | R [Symbol] | Union RegExp RegExp
-              | Star RegExp | Con RegExp RegExp | Plus RegExp
-  deriving (Show, Eq)
-=======
 \frametitle{$\epsilon $-NFA-s}
 
 			 Design choice: $\epsilon$-transitions represented as list of tuple - ease with transitive closure			
@@ -21,35 +13,4 @@ rtClose:: (Eq a, Ord a) => ENFA a -> [a] -> [a]
 rtClose nf qs = sort (unionL [[p | p <- statesENF nf , (q, p) `elem` trClose rcl ] | q<- qs] ) where
 	rcl = refClose (statesENF nf) (epTrans nf)			
 				
->>>>>>> 3d23e86 (some work on presentation)
 		\end{code}
-	Design choices:
-	\begin{itemize}
-\item not split empty from non-empty expressions	
-\item \texttt{Epsilon} versus \texttt{R []}
-\item \texttt{R [Symbol]} versus \texttt{R Symbol}
-	\end{itemize}
-For convenience:
-\begin{code}
-regExpUnion :: [RegExp] -> RegExp
-regExpUnion = simplify . foldr Union Empty
-\end{code}		
-=======
-\frametitle{RegExP to Generate words}
-\begin{code}
-generateString :: RegExp -> Gen String
-generateString = (`generateString'` 5) . simplify
-	where generateString' :: RegExp -> Int -> Gen String
-	generateString' Empty _ = error "cannot generate from empty language"
-	generateString' Epsilon _ = return ""
-	generateString' (R xs) _ = return xs
-	generateString' (Union r1 r2) n = oneof [generateString' r1 n, generateString' r2 n]
-	generateString' (Con r1 r2) n = do
-		w <- generateString' r1 n
-		v <- generateString' r2 n
-		return (w ++ v)
-	generateString' (Star _) 0 = return ""
-	generateString' (Star r) n = oneof [generateString' Epsilon n, generateString' (Con r (Star r)) (n - 1)]
-	generateString' (Plus r) n = generateString' (Con r (Star r)) n
-	\end{code}
->>>>>>> Stashed changes
