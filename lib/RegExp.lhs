@@ -15,11 +15,15 @@ data RegExp = Empty | Epsilon | R [Symbol] | Union RegExp RegExp | Star RegExp |
 pRegExp :: RegExp -> String
 pRegExp Empty = ""
 pRegExp Epsilon = "R e"
+pRegExp (R []) = "R e"
 pRegExp (R xs) = show xs
 pRegExp (Union r1 r2) = "(" ++ pRegExp r1 ++ "|" ++ pRegExp r2 ++ ")"
 pRegExp (Star r) = "(" ++  pRegExp r ++ ")*"
 pRegExp (Con r1 r2) = pRegExp r1 ++ pRegExp r2
 pRegExp (Plus r) = "(" ++ pRegExp r ++ ")+"
+
+ppRegExp :: RegExp -> IO ()
+ppRegExp = print . pRegExp
 
 regExpUnion :: [RegExp] -> RegExp
 regExpUnion = simplify . foldr Union Empty 

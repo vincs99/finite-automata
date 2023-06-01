@@ -15,4 +15,63 @@ For convenience:
 regExpUnion :: [RegExp] -> RegExp
 regExpUnion = simplify . foldr Union Empty
 \end{code}		
-	\end{frame}
+
+\end{frame}
+\begin{frame}[fragile]{RegExp but prettier}
+	
+\begin{code}
+pRegExp :: RegExp -> String
+pRegExp Empty = ""
+pRegExp Epsilon = "R e"
+pRegExp (R [])  = "R e" 
+pRegExp (R xs) = show xs
+pRegExp (Union r1 r2) = "(" ++ pRegExp r1 ++ "|" ++ pRegExp r2 ++ ")"
+pRegExp (Star r) = "(" ++  pRegExp r ++ ")*"
+pRegExp (Con r1 r2) = pRegExp r1 ++ pRegExp r2
+pRegExp (Plus r) = "(" ++ pRegExp r ++ ")+"
+
+ppRegExp :: RegExp -> IO ()
+ppRegExp = print . pRegExp
+\end{code}	
+
+\texttt{ghci> ppRegExp (Con (Union (R "53") (R " ")) (Star (R "19")) )}
+
+then becomes 
+
+\texttt{("("53"|R e)("19")*"}
+\end{frame}
+\begin{frame}[fragile]{RegExp Arbitrary}
+	\begin{code}
+instance Arbitrary RegExp where
+arbitrary = sized randomReg where
+randomReg :: Int -> Gen RegExp
+randomReg 0 = R <$> elements ["0", "1"]
+randomReg n = oneof [ R <$> elements ["0", "1"]
+, Star <$> randomReg (n `div` 8)
+, Plus <$> randomReg (n `div` 8)
+, Con <$> randomReg (n `div` 8)
+<*> randomReg (n `div` 8) 
+, Union <$> randomReg (n `div` 8)
+<*> randomReg (n `div` 8)
+, return Epsilon ]
+	\end{code}
+We chose \texttt{`div` 8} to avoid dealing with monstrosities	
+\end{frame}
+\begin{frame}[fragile]{RegExp to Generate Words}
+	\begin{code}
+generateString :: RegExp -> Gen String
+generateString = (`generateString'` 5) . simplify
+	where generateString' :: RegExp -> Int -> Gen String
+	generateString' Empty _ = error "cannot generate from empty language" 
+	generateString' Epsilon _ = return ""
+	generateString' (R xs) _ = return xs
+	generateString' (Union r1 r2) n = oneof [generateString' r1 n, generateString' r2 n]
+	generateString' (Con r1 r2) n = do
+		w <- generateString' r1 n
+		v <- generateString' r2 n
+		return (w ++ v)
+	generateString' (Star _) 0 = return ""    
+	generateString' (Star r) n = oneof [generateString' Epsilon n, generateString' (Con r (Star r)) (n - 1)]
+	generateString' (Plus r) n = generateString' (Con r (Star r)) n
+	\end{code}
+\end{frame}

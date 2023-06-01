@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 <<<<<<< HEAD
 \frametitle{RegExp implementation: data type}
 \begin{code}
@@ -33,3 +34,22 @@ For convenience:
 regExpUnion :: [RegExp] -> RegExp
 regExpUnion = simplify . foldr Union Empty
 \end{code}		
+=======
+\frametitle{RegExP to Generate words}
+\begin{code}
+generateString :: RegExp -> Gen String
+generateString = (`generateString'` 5) . simplify
+	where generateString' :: RegExp -> Int -> Gen String
+	generateString' Empty _ = error "cannot generate from empty language"
+	generateString' Epsilon _ = return ""
+	generateString' (R xs) _ = return xs
+	generateString' (Union r1 r2) n = oneof [generateString' r1 n, generateString' r2 n]
+	generateString' (Con r1 r2) n = do
+		w <- generateString' r1 n
+		v <- generateString' r2 n
+		return (w ++ v)
+	generateString' (Star _) 0 = return ""
+	generateString' (Star r) n = oneof [generateString' Epsilon n, generateString' (Con r (Star r)) (n - 1)]
+	generateString' (Plus r) n = generateString' (Con r (Star r)) n
+	\end{code}
+>>>>>>> Stashed changes
