@@ -16,15 +16,13 @@ pRegExp :: RegExp -> String
 pRegExp Empty = ""
 pRegExp Epsilon = "R e"
 pRegExp (R xs) = show xs
-pRegExp (Union r1 r2) = "(" ++ pRegExp r1 ++ " u " ++ pRegExp r2 ++ ")"
+pRegExp (Union r1 r2) = "(" ++ pRegExp r1 ++ "|" ++ pRegExp r2 ++ ")"
 pRegExp (Star r) = "(" ++  pRegExp r ++ ")*"
 pRegExp (Con r1 r2) = pRegExp r1 ++ pRegExp r2
 pRegExp (Plus r) = "(" ++ pRegExp r ++ ")+"
 
 regExpUnion :: [RegExp] -> RegExp
-regExpUnion [] = Empty
-regExpUnion [r] = r
-regExpUnion (r:rs) =  foldr Union r rs
+regExpUnion = simplify . foldr Union Empty 
 
 \end{code}
 
@@ -34,8 +32,8 @@ Note we exclude the Empty expression from the generation, as we cannot generate 
 instance Arbitrary RegExp where
   arbitrary = sized randomReg where
     randomReg :: Int -> Gen RegExp
-    randomReg 0 = R <$> elements ["0", "1", "2"]
-    randomReg n = oneof [ R <$> elements ["0", "1", "2"]
+    randomReg 0 = R <$> elements ["0", "1"]
+    randomReg n = oneof [ R <$> elements ["0", "1"]
                           , Star <$> randomReg (n `div` 8)
                           , Plus <$> randomReg (n `div` 8)
                           , Con <$> randomReg (n `div` 8)

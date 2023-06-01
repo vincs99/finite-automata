@@ -1,17 +1,18 @@
-\frametitle{RegExp implementation: data type}
-\begin{code}
-data RegExp = Empty | Epsilon | R [Symbol] | Union RegExp RegExp
-              | Star RegExp | Con RegExp RegExp | Plus RegExp
+\begin{frame}[fragile]{RegExp implementation: data type}
+		\begin{code}
+data RegExp = Empty | Epsilon | R [Symbol] | Union RegExp RegExp 
+              | Star RegExp | Con RegExp RegExp | Plus RegExp 
   deriving (Show, Eq)
 		\end{code}
 	Design choices:
 	\begin{itemize}
 \item not split empty from non-empty expressions	
 \item \texttt{Epsilon} versus \texttt{R []}
-\item \texttt{R [Symbol]} versus \texttt{R Symbol}
+\item \texttt{R [Symbol]} versus \texttt{R Symbol} 
 	\end{itemize}
 For convenience:
 \begin{code}
 regExpUnion :: [RegExp] -> RegExp
 regExpUnion = simplify . foldr Union Empty
 \end{code}		
+	\end{frame}

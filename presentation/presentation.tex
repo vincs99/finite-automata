@@ -44,6 +44,7 @@
 			\item RegExp: implementation, word generation
 			\item DFA to RegExp
 			\item RegExp to $\epsilon$-NF
+			\item Tests
 		\end{itemize}
 		
 	\end{frame}
@@ -84,4 +85,9 @@ evaluateNF nf st = all (`elem` alphabetNF nf) st && -- captures elements of stri
 		  stateArrNF'  (q:qs) (x:xs) = stateArrNF' [q] (x : xs) `union` stateArrNF' qs (x : xs) --recursion on statespace
 		\end{code}
 	\end{frame}
+	
+\input{presentationWouter}	
+	
+	
+	
 \end{document}

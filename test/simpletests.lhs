@@ -47,6 +47,14 @@ main = do
     test1CompRegx
     print "Complement on different RegExp:"
     test2CompRegx
+    print "Reverse works"
+    test1ReverseDFA
+    print "Minimize yields equivalent automaton:"
+    test1MinimizeDFA
+    --print "Brzozowski:"
+    --brzozowskiCheck
+    print "cutDFA yields equivalent automaton"
+    test1CutDFA
 
     
 \end{code}
@@ -174,7 +182,23 @@ test2CompRegx :: IO ()
 test2CompRegx = quickCheck (forAll (generateString reg) (\w -> forAll (generateString (creg reg))(/= w))) where
                     creg = dfaToRegExp . makeIntDFA . flipDFA . enfaToDFA . regExpToENFA
                     reg = Con (Star (R "2")) (Con (R "0") (R "0"))
+
+test1ReverseDFA :: IO ()
+test1ReverseDFA = quickCheck (\r (d :: DFA Int) -> forAll (generateString r) (\w -> d `evaluate` w == (reverseDFA . reverseDFA ) d `evaluate` w ))
+
+test1MinimizeDFA :: IO ()
+test1MinimizeDFA = quickCheck (\r (d :: DFA Int) -> forAll (generateString r) (\w -> d `evaluate` w == minimizeDFA d `evaluate` w ))
+
+test1CutDFA :: IO ()
+test1CutDFA = quickCheck (\r (d :: DFA Int) -> forAll (generateString r) (\w -> d `evaluate` w == cutDFA d `evaluate` w ))
+
+
+brzozowskiCheck :: IO ()
+brzozowskiCheck = verboseCheck (\ (d :: DFA Int) -> within 10000000 $ brzozowski d ((enfaToDFA . regExpToENFA . dfaToRegExp . minimizeDFA) d))                   
 \end{code}
+
+
+
 
 
 %To also find out which part of your program is actually used for these tests,

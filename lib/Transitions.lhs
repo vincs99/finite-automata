@@ -12,6 +12,8 @@ import ENFA
 import RegExp
 import Data.Maybe (fromJust)
 
+
+
 nfaToDFA:: (Eq a, Ord a) => NFA a -> DFA [a]
 nfaToDFA (NFA sts alph del strt ac) = 
   cutDFA $ DFA sortedStates alph del' (sort [strt]) [st | st <- sortedStates,  intersect st ac /= []] where
@@ -112,4 +114,53 @@ rijk dfa i j 0 | i == j  = regExpUnion $ Epsilon : labels
   where labels =  [R [x] | x <- alphabet dfa, delta dfa x i == j]
 rijk dfa i j k = Union (rijk dfa i j (k-1)) (Con (rijk dfa i k (k-1)) (Con (Star $ rijk dfa k k (k-1)) (rijk dfa k j (k-1))))
 
+\end{code}
+
+
+Brzozowski's algorithm for comparing DFA's
+
+\begin{code}
+
+
+
+minimizeDFA :: Ord a => DFA a -> DFA [Int]
+minimizeDFA df | all (`elem` acceptstate df) (reachables df)  = DFA [[0]] (alphabet df) (const (const [0])) [0] [[0]] 
+               |  otherwise = (reverseDFA . reverseDFA) df 
+
+  
+reverseDFA :: Ord a => DFA a -> DFA [Int]
+reverseDFA d = enfaToDFA' $ ENFA sts alph delt ep st acc where
+    e = singleAccept $ cutDFA d
+    sts = statesENF e
+    alph = alphabetENF e
+    delt sym s = [t | t <- statesENF e, s `elem` deltaENF e sym t] 
+    ep = [(s, t) | (t,s) <- epTrans e ]
+    st = head $ acceptstateENF e
+    acc = [startENF e]
+    enfaToDFA' nf@(ENFA sts' alph' del eps strt ac) = 
+      cutDFA $ DFA sortedStates alph' del' (rtClose nf (sort [ t | (s, t) <- eps, s == strt])) [st' | st' <- sortedStates,  intersect st' ac /= []] where
+      del' sy ls = rtClose nf ( unionL [del sy l | l <- ls] )
+      sortedStates = map sort $ subsequences sts'
+  
+singleAccept :: Ord a => DFA a -> ENFA Int
+singleAccept d = ENFA sts alph delt ep st acc where 
+    d' = makeIntDFA d 
+    newAccept = maximum (states d') + 1
+    sts = newAccept : states d'
+    alph = alphabet d'
+    delt sym t | t == newAccept = []
+               | otherwise =  [delta d' sym t]
+    ep = [(f, newAccept) | f <- acceptstate d']
+    st = start d'
+    acc = [newAccept]
+
+brzozowski :: (Ord a, Ord b) => DFA a -> DFA b -> Bool
+brzozowski d d' = alphabet d == alphabet d' && 
+  (null (acceptstate m) && null (acceptstate m')) ||
+   isIsomorphTo (start m) (start m') [] where
+    m = minimizeDFA d
+    m' = minimizeDFA d'
+    isIsomorphTo s s' is = (s,s') `elem` is || 
+      (s `elem` acceptstate m) == (s' `elem` acceptstate m') &&
+      all (\sym -> isIsomorphTo (delta m sym s) (delta m' sym s') ((s,s'):is)) (alphabet m) 
 \end{code}

@@ -71,6 +71,9 @@ cutDFA d = DFA sts alp delt strt acc where
   acc = reachables d `intersect` acceptstate d
   delt = delta d 
 
+
+
+
 \end{code}
 
 We make DFA-s instance of Arbitrary as follows. We use solution to Homework 2.
@@ -93,7 +96,7 @@ randomDelta (sym:syms) ds ps = do
 instance Arbitrary (DFA Int) where
     arbitrary = do
         -- choose a set of up to 10 worlds:
-        sts <- (0 :) <$> sublistOf [1..5]
+        sts <- (0 :) <$> sublistOf [1..3]
         let sym = ['0', '1']
         delt <- randomDelta sym sts sts
         strt <- elements sts
