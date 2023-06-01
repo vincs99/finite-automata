@@ -184,7 +184,7 @@ unionENFA n1 n2 = ENFA states'' alphabet2 delta'' epT start'' accept where
 \end{frame}
 \begin{frame}[fragile]{DFA to RegExp}
 	\begin{itemize}
-		\item And now for the fun part!
+		\item<1> And now for the fun part!
 	\end{itemize}
 \pause	
 	\begin{code}		
@@ -202,10 +202,10 @@ dfaToRegExp dfa = simplify $ regExpUnion [rijk dfaInt (start dfaInt) f (length $
 \end{frame}
 \begin{frame}[fragile]{Minimising a DFA: Brzozowski's algorithm}
 	\begin{itemize}
-		\item Reversing the DFA
-		\item Cutting out unreachable states 
-		\item Reverse it back 
-		\item Cut out unreachable states again 
+		\item Reverse the DFA.
+		\item Cutting out unreachable states by forward searching from the starting state.
+		\item Reverse again.
+		\item Cut out unreachable states again.
 	\end{itemize}
 \begin{code}
 reverseDFA :: Ord a => DFA a -> DFA [Int]
@@ -218,6 +218,7 @@ ep = [(s, t) | (t,s) <- epTrans e ]
 st = head $ acceptstateENF e
 acc = [startENF e]
 \end{code}	
+\item Due to the nature of the power set construction and the fact that all states now contribute at least some word, the DFA is now minimal.
 \end{frame}
 \begin{frame}[fragile]{The Magic}
 \begin{code}

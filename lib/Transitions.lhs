@@ -117,7 +117,7 @@ rijk dfa i j k = Union (rijk dfa i j (k-1)) (Con (rijk dfa i k (k-1)) (Con (Star
 \end{code}
 
 
-Brzozowski's algorithm for comparing DFA's
+Brzozowski's algorithm for minimising DFA's
 
 \begin{code}
 
