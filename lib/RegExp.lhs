@@ -12,6 +12,11 @@ import Test.QuickCheck
 data RegExp = Empty | Epsilon | R [Symbol] | Union RegExp RegExp | Star RegExp | Con RegExp RegExp | Plus RegExp
   deriving (Show, Eq)
 
+
+regExpUnion :: [RegExp] -> RegExp
+regExpUnion = simplify . foldr Union Empty   
+
+
 pRegExp :: RegExp -> String
 pRegExp Empty = ""
 pRegExp Epsilon = "R e"
@@ -24,10 +29,6 @@ pRegExp (Plus r) = "(" ++ pRegExp r ++ ")+"
 
 ppRegExp :: RegExp -> IO ()
 ppRegExp = print . pRegExp
-
-regExpUnion :: [RegExp] -> RegExp
-regExpUnion = simplify . foldr Union Empty 
-
 \end{code}
 
 We create an Arbitrary instance for RegExp to be able to generate regular expressions. 

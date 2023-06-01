@@ -101,7 +101,7 @@ makeIntDFA dfa = DFA sts alph delt strt acceptst
         indX s = fromJust (elemIndex s (states dfa)) + 1
 
 -- simplify to make the result a bit more readable 
-dfaToRegExp :: (Eq a, Ord a) => DFA a -> RegExp
+dfaToRegExp :: Ord a => DFA a -> RegExp
 dfaToRegExp dfa = simplify $ regExpUnion [rijk dfaInt (start dfaInt) f (length $ states dfaInt) | f <- acceptstate dfaInt ]
   where dfaInt = (makeIntDFA . minimizeDFA) dfa
 
