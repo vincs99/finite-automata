@@ -2,8 +2,8 @@
 \section{Simple Tests}
 \label{sec:simpletests}
 
-We create some tests, using QuickCheck to test whether some automata are equal, whether some regular expression 
-generates exactly the language of some automaton, and we will add tests that show that our definitions work.
+This section discusses our testing suite. We import all modules and test different aspects of the code 
+via several QuickCheck queries. 
 
 
 \begin{code}
@@ -15,22 +15,25 @@ import DFA
 import ENFA
 import NFA
 import Translation
---import DFA_raw
-
+\end{code}
+The main function runs all of our tests and prints a one-line explanation for them. 
+\begin{code}
 main :: IO()
 main = do
-    print "ZeroStart accepts words starting with 0:"
-    test1DF
-    print "ZeroStart does not accept other words:"
-    test2DF
-    print "ZeroStartNF accepts words starting with 0: "
-    test1NF
-    print "ZeroStartNF does not accept other words:"
-    test2NF
-    print "ZeroStartENF accepts words starting with 0:"
-    test1ENF
-    print "ZeroStartENF does not accept other words:"
-    test2ENF
+    print "ZeroStart accepts words starting with 0, for DFA, NFA and ENFA version:"
+    test1FA
+    print "ZeroStart does not accept other words, for DFA, NFA and ENFA version:"
+    test2FA
+    print "The reverse of the reverse accepts and rejects the same words:"
+    test1ReverseDFA
+    print "The reverse of the reverse is isomorphic to the original"
+    test2ReverseDFA
+    print "Minimize yields an automaton that accepts and rejects the same words:"
+    test1MinimizeDFA
+    print "Minimize doesn't yield more states:"
+    test2MinimizeDFA
+    print "cutDFA dfa accepts and rejects the same as dfa:"
+    test1CutDFA
     print "Powerset construction yields equivalent DFA for NFA:"
     test1PowNF
     print "Powerset construction yields equivalent DFA for ENFA:"
@@ -41,35 +44,17 @@ main = do
     test2DFtoReg
     print "ENFA corresponding to RegExp accepts words generated from RegExp:"
     test1RegtoENF
-    print "Composition of transitions yields equivalent DFA for DFA:"
+    print "Composition of translations yields equivalent DFA for DFA:"
     test1DFeqv
     print "Complement RegExps don't generate the same word:"
     test1CompRegx
     print "Complement on different RegExp:"
     test2CompRegx
-    print "The reverse of the reverse accepts and rejects the same words:"
-    test1ReverseDFA
-    print "The reverse of the reverse is isomorphic to the original"
-    test2ReverseDFA
-    print "Minimize yields an automaton that accepts and rejects the same words:"
-    test1MinimizeDFA
-    print "Minimised automata generated from a RegExp accept words from said RegExp"
+    print "Minimised automata generated from a RegExp accept words from said RegExp:"
     testMinimizeMore
-    print "Minimize doesn't yield more states"
-    test2MinimizeDFA
-    print "cutDFA dfa accepts and rejects the same as dfa"
-    test1CutDFA
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 7a82919 (Transition -> Translation)
-    
 \end{code}
-The first test whether the example DFA, called zeroStart indeed accepts the strings 
-starging with $0$. Note the regular expression for this language is $0(0+1)*$. 
-We do the same for slightly modified NFA and ENFA versions of zeroStart. 
-
+First we start by defining some example NFA-s and $\epsilon$-NFA-s similar to the previously seen DFA 
+called zeroStart, that accept the same language. We also add a further example for a DFA. 
 \begin{code}
 zeroStartNF:: NFA Int
 zeroStartNF = NFA [0,1,2, 3] ['0', '1'] deltazeroNF 0 [1] where
@@ -80,7 +65,7 @@ zeroStartNF = NFA [0,1,2, 3] ['0', '1'] deltazeroNF 0 [1] where
      | st == 1 = [1]
      | st == 2 = [2, 3]
      | st == 3 = [3]
-     | otherwise = [-1]
+     | otherwise = [-1] --added to avoid hlint warning 'pattern matches are non-exhaustive'
 
 zeroStartENF:: ENFA Int
 zeroStartENF = ENFA [0,1,2, 3] ['0', '1'] deltazeroNF [(3,2), (2,3)] 0 [1] where
@@ -104,40 +89,42 @@ dfa2 = DFA [0,1,3] "01" del2 3 [0] where
       | char =='1' && st == 3 = 3
       | otherwise = -1
 
--- test
-test1DF :: IO ()
-test1DF = quickCheck (forAll (generateString (Con (R "0") (Star (Union (R "0") (R "1"))))) 
-                        (\w -> zeroStart `evaluate` w))
-
-test1NF :: IO ()
-test1NF = quickCheck (forAll (generateString (Con (R "0") (Star (Union (R "0") (R "1"))))) 
-                        (\w -> zeroStartNF `evaluateNF` w ))
-
-test1ENF :: IO ()
-test1ENF = quickCheck (forAll (generateString (Con (R "0") (Star (Union (R "0") (R "1"))))) 
-                        (\w -> zeroStartENF `evaluateENF` w ))
-
-\end{code}
-
-We now test that words generated from the RegExp for the complement are not accepted. 
-Note the RegExp for the complement language is $\epsilon + 1(0+1)*$
-
+\end{code} 
+Note the regular expression for the language of words starting with $0$ is $0(0+1)^*$. 
+We generate words from this expression and test if all $3$ of our example automata for this language accept
+the generated words. Next, we generate words from the complement language, which has the regular expression $\epsilon + 1(0+1)^*$
+and test if the automata reject these words.
 \begin{code}
-test2DF :: IO ()
-test2DF = quickCheck (forAll (generateString (Union Epsilon (Con (R "1") (Star (Union (R "0") (R "1")))))) 
-                        (not . evaluate zeroStart))
-
-test2NF :: IO ()
-test2NF = quickCheck (forAll (generateString (Union Epsilon (Con (R "1") (Star (Union (R "0") (R "1")))))) 
-                        (not . evaluateNF zeroStartNF))
-
-test2ENF :: IO ()
-test2ENF = quickCheck (forAll (generateString (Union Epsilon (Con (R "1") (Star (Union (R "0") (R "1")))))) 
-                        (not . evaluateENF zeroStartENF))
+test1FA :: IO ()
+test1FA = quickCheck (forAll (generateString (Con (R "0") (Star (Union (R "0") (R "1"))))) 
+                        (\w -> zeroStart `evaluate` w && zeroStartNF `evaluateNF` w  &&  
+                        zeroStartENF `evaluateENF` w ))
+test2FA :: IO ()
+test2FA = quickCheck (forAll (generateString (Union Epsilon (Con (R "1") (Star (Union (R "0") (R "1")))))) 
+                        (\w -> not (zeroStart `evaluate` w) && not (zeroStartNF `evaluateNF` w)  &&  not(
+                        zeroStartENF `evaluateENF` w )))
 \end{code}
+Here we test the toolkit for obtaining the minimal DFA for a language. Test if the reverse of the reverse DFA 
+accept the same words as the original DFA. We go further and use the brozowski function
+to test if they are isomorphic.  We then test if a DFA and its corresponding minimal 
+DFA accept the same words. We finish by testing that the minimal DFA has always at most
+as many states as the original DFA. We also test the cutDFA function. We check if the 
+DFA after cutting accepts the same words as the original DFA. We generate arbitrary DFAs for these. 
+\begin{code}
+test1ReverseDFA :: IO ()
+test1ReverseDFA = quickCheck (\r (d:: DFA Int)  -> forAll (generateString r) (\w -> d `evaluate` w == (reverseDFA . reverseDFA ) d `evaluate` w ))
+test2ReverseDFA :: IO ()
+test2ReverseDFA = quickCheck (\(d :: DFA Int) -> brzozowski d ((reverseDFA . reverseDFA) d) )
+test1MinimizeDFA :: IO ()
+test1MinimizeDFA = quickCheck (\r (d :: DFA Int) -> forAll (generateString r) (\w -> d `evaluate` w == minimizeDFA d `evaluate` w ))
+test2MinimizeDFA :: IO ()
+test2MinimizeDFA = quickCheck (\ (d :: DFA Int) -> length (states d) >= length (states (minimizeDFA d)))
+test1CutDFA :: IO ()
+test1CutDFA = quickCheck (\r (d :: DFA Int) -> forAll (generateString r) (\w -> d `evaluate` w == cutDFA d `evaluate` w ))
 
+\end{code}
 We now test the powerset construction. We test if an NFA accepts the same binary strings as
-its powerset construct. We repeat for ENFA-s. We generate arbitrary NFA-s and ENFA-s for this.
+its powerset construct. We repeat for $\epsilon$-NFAs. We generate arbitrary NFAs and $\epsilon$-NFAs for this.
 \begin{code}
 test1PowNF :: IO ()
 test1PowNF = quickCheck (forAll (generateString (Union (R "0") (R "1"))) 
@@ -148,9 +135,9 @@ test1PowENF = quickCheck (forAll (generateString (Union (R "0") (R "1")))
                             (\w (enf:: ENFA Int) -> evaluateENF enf w == evaluate (enfaToDFA enf) w) )
 \end{code}
 
-We now test the transition from DFA to RegExp. We check whether a DFA accepts words generated from
-the corresponding RegExp and that it does not accept words generated from the RegExp corresponding to 
-the complement DFA. We generate arbitrary DFA-s for this. 
+We now test the translation from DFA to RegExp. We check whether a DFA accepts words generated from
+the corresponding regular expression and that it does not accept words generated from the regular expression corresponding to 
+the DFA with complement accept states. We generate arbitrary DFAs for this. 
 
 \begin{code}
 test1DFtoReg :: IO ()
@@ -162,8 +149,9 @@ test2DFtoReg = quickCheck ( \ (df:: DFA Int) -> if dfaToRegExp (flipDFA df) /= E
                 forAll (generateString (dfaToRegExp (flipDFA df))) (not . evaluate df ) else property True)
 \end{code}
 
-We now test the transition from RegExp to $\epsilon$-NFA. We check whether the $\epsilon$-NFA corresponding
-to a RegExp accepts words generated from the RegExp. We generate arbitrary RegExps- for this.
+We now test the translation from RegExp to $\epsilon$-NFA. We check whether the $\epsilon$-NFA corresponding
+to a regular expression accepts words generated from the the expression. We generate arbitrary regular expressions
+ for this.
 
 \begin{code}
 test1RegtoENF :: IO ()
@@ -171,17 +159,17 @@ test1RegtoENF = quickCheck ( \ (reg:: RegExp) -> forAll (generateString reg)
                         (\w -> regExpToENFA reg `evaluateENF` w))
 \end{code}
 
-We put everything together and test whether a DFA and the DFA obtained from transitioning to RegExp, 
+We put everything together and test whether a DFA and the DFA obtained from translating to regular expressions, 
 then to $\epsilon$-NFA and back to DFA are equivalent. We test it on our two example DFA-s.
-We also calculate complement RegExp-s by flipping the corresponding DFA accept states
-and test for a for 2 RegExps that they don't generate the same words.
+We also calculate complement regular expressions by translating to DFAs, taking the complement of accept states
+and translating back to regular expressions. We test such complement expressions don't yield the same words. We test
+this on $2$ toy expressions. We also combine our translations by the minimal DFA toolkit and check that the 
+minimal DFA corresponding to a regular expression accepts the words generated from it. 
 \begin{code}
 test1DFeqv :: IO ()
 test1DFeqv = quickCheck (forAll (generateString (Union (R "0") (R "1"))) 
                 (\w -> evaluate dfa2 w == evaluate (func dfa2) w &&  evaluate zeroStart w == evaluate (func zeroStart) w)) where
                     func = enfaToDFA . regExpToENFA . dfaToRegExp
-
-
 
 test1CompRegx :: IO ()
 test1CompRegx = quickCheck (forAll (generateString reg) (\w -> forAll (generateString (creg reg))(/= w))) where
@@ -193,27 +181,9 @@ test2CompRegx = quickCheck (forAll (generateString reg) (\w -> forAll (generateS
                     creg = dfaToRegExp . makeIntDFA . flipDFA . enfaToDFA . regExpToENFA
                     reg = Con (Star (R "2")) (Con (R "0") (R "0"))
 
-
-
-test1ReverseDFA :: IO ()
-test1ReverseDFA = quickCheck (\r (d:: DFA Int)  -> forAll (generateString r) (\w -> d `evaluate` w == (reverseDFA . reverseDFA ) d `evaluate` w ))
-test2ReverseDFA :: IO ()
-test2ReverseDFA = quickCheck (\(d :: DFA Int) -> brzozowski d ((reverseDFA . reverseDFA) d) )
-test1MinimizeDFA :: IO ()
-test1MinimizeDFA = quickCheck (\r (d :: DFA Int) -> forAll (generateString r) (\w -> d `evaluate` w == minimizeDFA d `evaluate` w ))
-test2MinimizeDFA :: IO ()
-test2MinimizeDFA = quickCheck (\ (d :: DFA Int) -> length (states d) >= length (states (minimizeDFA d)))
-
 testMinimizeMore :: IO ()
 testMinimizeMore = quickCheck (\r -> forAll (generateString r) (\w -> (minimizeDFA . enfaToDFA . regExpToENFA) r `evaluate` w))  
 
-
-test1CutDFA :: IO ()
-test1CutDFA = quickCheck (\r (d :: DFA Int) -> forAll (generateString r) (\w -> d `evaluate` w == cutDFA d `evaluate` w ))
-<<<<<<< HEAD
-=======
-
->>>>>>> 7a82919 (Transition -> Translation)
 \end{code}
 
 
