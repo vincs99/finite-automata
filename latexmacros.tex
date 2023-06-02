@@ -8,6 +8,14 @@
 \parindent0cm
 \parskip1em
 
+\usepackage{amsthm}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+
 \usepackage{tikz}
 \usetikzlibrary{arrows,trees,positioning,shapes,patterns}
 \usetikzlibrary{intersections,calc,fpu,decorations.pathreplacing}
@@ -40,6 +48,8 @@
 }
 \lstnewenvironment{code}[0]{}{}
 \lstnewenvironment{showCode}[0]{\lstset{numbers=none}}{} % only shown, not compiled
+
+
 
 % will the real phi please stand up
 \renewcommand{\phi}{\varphi}

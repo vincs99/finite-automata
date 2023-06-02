@@ -59,12 +59,6 @@ main = do
     test2MinimizeDFA
     print "cutDFA dfa accepts and rejects the same as dfa"
     test1CutDFA
-<<<<<<< HEAD
-
-=======
-    
->>>>>>> 66e0f55 (presentation redy-ish)
-
     
 \end{code}
 The first test whether the example DFA, called zeroStart indeed accepts the strings 
@@ -211,10 +205,6 @@ testMinimizeMore = quickCheck (\r -> forAll (generateString r) (\w -> (minimizeD
 
 test1CutDFA :: IO ()
 test1CutDFA = quickCheck (\r (d :: DFA Int) -> forAll (generateString r) (\w -> d `evaluate` w == cutDFA d `evaluate` w ))
-<<<<<<< HEAD
-
-=======
->>>>>>> 66e0f55 (presentation redy-ish)
 \end{code}
 
 

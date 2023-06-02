@@ -1,4 +1,3 @@
-
 \section{DFA Implementation}\label{sec:DFA}
 
 This describes our implementation of Deterministic Finite State Automata. As in the definition, a DFA consists
@@ -16,7 +15,7 @@ type Symbol = Char
 data DFA a = DFA { states :: [a] 
                 , alphabet:: [Symbol]
                 , delta :: Symbol -> a -> a
-                ,  start:: a
+                , start:: a
                 , acceptstate:: [a]}
 instance Show a => Show (DFA a) where
     show (DFA sts alph del strt acc) 
