@@ -170,17 +170,14 @@ test1DFeqv :: IO ()
 test1DFeqv = quickCheck (forAll (generateString (Union (R "0") (R "1"))) 
                 (\w -> evaluate dfa2 w == evaluate (func dfa2) w &&  evaluate zeroStart w == evaluate (func zeroStart) w)) where
                     func = enfaToDFA . regExpToENFA . dfaToRegExp
-
 test1CompRegx :: IO ()
 test1CompRegx = quickCheck (forAll (generateString reg) (\w -> forAll (generateString (creg reg))(/= w))) where
                     creg = dfaToRegExp . makeIntDFA . flipDFA . enfaToDFA . regExpToENFA
                     reg = Union Epsilon (Con (R "1") (Star (Union (R "0") (R "1"))))
-
 test2CompRegx :: IO ()
 test2CompRegx = quickCheck (forAll (generateString reg) (\w -> forAll (generateString (creg reg))(/= w))) where
                     creg = dfaToRegExp . makeIntDFA . flipDFA . enfaToDFA . regExpToENFA
                     reg = Con (Star (R "2")) (Con (R "0") (R "0"))
-
 testMinimizeMore :: IO ()
 testMinimizeMore = quickCheck (\r -> forAll (generateString r) (\w -> (minimizeDFA . enfaToDFA . regExpToENFA) r `evaluate` w))  
 

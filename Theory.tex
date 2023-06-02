@@ -1,6 +1,10 @@
 \section{Background Theory}
 
+<<<<<<< HEAD
 Automata are mathematical models of computation. They are used in several areas of computer science and linguistics. Finite state automata, one of the most basic models, are used in, among other things, text processing and compilers. Here we will give a brief overview of the theory, which should be enough to make one understand the report. For a more detailed exposition, see for example \cite{sipser13}.
+=======
+Automata are mathematical models of computation. They are used in several areas of computer science and linguistics. Finite state automata, one of the most basic models, are used in, for example, text processing and compilers.
+>>>>>>> 43b5486 (theory fine)
 
 \subsection{Formal Languages}
 Automata are concerned with \emph{formal languages}. A language in our setting is nothing more than a set of strings, or \emph{words}, constructed from a given (finite) \emph{alphabet}. An alphabet is typically denoted by the Greek capital $\Sigma$ and consists of \emph{symbols} or characters. A string over an alphabet is nothing more than a finite sequence of symbols. If $A$ is a set, then the set of all finite sequences over $A$ is denoted $A^*$. Hence $A^*$ is the full language over alphabet $A$. 
@@ -66,7 +70,7 @@ The computation of a word $w$ on DFA $D=(S,\Sigma, \delta,s_0,F)$ will goes as f
 \end{enumerate}
 We have two remarks about this procedure:
 \begin{itemize}
-\item It is up for debate if a $DFA$ rejects or fails when it reads a symbol that is not in the alphabet. Our implementation will reject for a more user-friendly experience. 
+\item It is up for debate if a DFA rejects or fails when it reads a symbol that is not in the alphabet. Our implementation will reject for a more user-friendly experience. 
 \item An NFA could end up in multiple states when reading a symbol. The idea is that the machine will non-deterministically choose to which state to go. If one possible path of computation ends up in an accepting state, the machine will accept. Note that some paths may end due to the machine reading a symbol $a$ in a state $s$ such that there is no $t$ with $(s,a,t)\in \Delta$. In that case this path will count as not ending up in an accepting state.
 \end{itemize}
 
