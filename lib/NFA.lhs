@@ -11,6 +11,8 @@ module NFA where
 import Data.List
 import DFA
 import Test.QuickCheck
+
+
 data NFA a= NFA { statesNF :: [a]
                 , alphabetNF:: [Symbol]
                 , deltaNF :: Symbol -> a -> [a]

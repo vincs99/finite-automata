@@ -1,6 +1,6 @@
 \section{Transition functions}\label{sec:Trans}
 
-Here we implement several transition functions between objects.
+Here we implement several translation functions between objects.
 First the powerset construction between NFA-s and DFA-s.
 
 \begin{code}
