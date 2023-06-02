@@ -1,14 +1,20 @@
 \section{Regular expressions}\label{sec:RegExp}
 Here we implement regular expressions and a toolset to generate words that the regexp accepts.
 
+\ignore{
 \begin{code}
+ 
 module RegExp where
 import DFA
 import NFA()
 import ENFA()
 import Test.QuickCheck
+\end{code}
+}
 
 
+
+\begin{code}
 data RegExp = Empty | Epsilon | R [Symbol] | Union RegExp RegExp | Star RegExp | Con RegExp RegExp | Plus RegExp
   deriving (Show, Eq)
 
