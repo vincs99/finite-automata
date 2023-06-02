@@ -19,7 +19,7 @@ library
       ENFA
       NFA
       RegExp
-      Transitions
+      Translation
   other-modules:
       Paths_finite_automata
   hs-source-dirs:

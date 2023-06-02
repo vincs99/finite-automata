@@ -6,7 +6,7 @@ import DFA
 import ENFA
 import NFA()
 import RegExp
-import Transitions
+import Translation
 import Test.QuickCheck
 
 

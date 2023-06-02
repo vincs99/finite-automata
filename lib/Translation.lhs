@@ -4,7 +4,7 @@ Here we implement several transition functions between objects.
 First the powerset construction between NFA-s and DFA-s.
 
 \begin{code}
-module Transitions where
+module Translation where
 import Data.List 
 import NFA
 import DFA

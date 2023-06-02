@@ -14,7 +14,7 @@ import RegExp
 import DFA
 import ENFA
 import NFA
-import Transitions
+import Translation
 --import DFA_raw
 
 main :: IO()
@@ -59,6 +59,11 @@ main = do
     test2MinimizeDFA
     print "cutDFA dfa accepts and rejects the same as dfa"
     test1CutDFA
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 7a82919 (Transition -> Translation)
     
 \end{code}
 The first test whether the example DFA, called zeroStart indeed accepts the strings 
@@ -205,6 +210,10 @@ testMinimizeMore = quickCheck (\r -> forAll (generateString r) (\w -> (minimizeD
 
 test1CutDFA :: IO ()
 test1CutDFA = quickCheck (\r (d :: DFA Int) -> forAll (generateString r) (\w -> d `evaluate` w == cutDFA d `evaluate` w ))
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7a82919 (Transition -> Translation)
 \end{code}
 
 
