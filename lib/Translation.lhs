@@ -1,7 +1,7 @@
-\section{Transition functions}\label{sec:Trans}
+\section{Translation functions}\label{sec:Trans}
 
-Here we implement several translation functions between objects.
-First the powerset construction between NFA-s and DFA-s.
+Here we implement all the algorithms that translate betwen FSAs and regular expressions. For each instance, 
+we give a short theoretical background and then discuss our implementation.
 
 \begin{code}
 module Translation where
@@ -11,9 +11,28 @@ import DFA
 import ENFA
 import RegExp
 import Data.Maybe (fromJust)
+\end{code}
+\subsection{The Powerset construction}
+As stated earlier, ($\epsilon$)-NFAs and DFA-s are equivalent in their computing power. This fact is shown by constructing an equivalent DFA from an ($\epsilon$) - NFA. This procedure is called the powerset construction, which we detail here.  
 
+\begin{definition}{(Powerset construction - NFA-s)}
+	Given an NFA $N = (Q_n, \Sigma, \delta_n, q_0, F_n)$, its powerset construct is a DFA $D = (\mathcal{P}(Q_n), \Sigma, \delta, S, F_D )$, where
+	\begin{itemize}
+		\item $\mathcal{P}(Q_n)$ is the powerset of $Q_n$, 
+		\item $S = \{q_0\}$
+		\item $F_D = \{R\subset Q_N \colon S\cap F_n \neq \emptyset\}$
+		\item $\delta_D(R, \sigma) = \cup_{s\in R} \delta_N(s, \sigma)$
+	\end{itemize}
+\end{definition}
+For $\epsilon$-NFA-s the powerset construct is defined similarly, with the distinction that $S = \mathrm{ecl}(\{q_0\})$ and $\delta_D(R, \sigma) = \mathrm{ecl}(\cup_{s\in R} \delta_N(s, \sigma))$. Here, $\mathrm{ecl}(A)$ stands for the set of states reachable from $A$ via $\epsilon$-transitions.
 
-
+\begin{theorem}
+	An ($\epsilon$)-NFA $N$ and its powerset construct are equivalent. 
+\end{theorem}
+We implement the powerset construction for NFA-s. The states of the powerset construct are sublists of states of the NFA. 
+Note that the standard powerset construction is greedy: it introduces exponentially many states. For running purposes, we cut the resulting 
+DFA by our cutDFA function. In some examples, this could cut down a DFA on $2^{19}$ states to as few as $10$.
+\begin{code}
 nfaToDFA:: (Eq a, Ord a) => NFA a -> DFA [a]
 nfaToDFA (NFA sts alph del strt ac) = 
   cutDFA $ DFA sortedStates alph del' (sort [strt]) [st | st <- sortedStates,  intersect st ac /= []] where
@@ -21,7 +40,7 @@ nfaToDFA (NFA sts alph del strt ac) =
     sortedStates = map sort $ subsequences sts
 \end{code}
 
-We extend the powerset construction for $\epsilon$-NFA-s.
+For $\epsilon$-NFA-s, we need to take care to take $\epsilon$-closures at each relevant step. 
 
 \begin{code}
 enfaToDFA:: (Eq a, Ord a) => ENFA a -> DFA [a]
@@ -31,7 +50,7 @@ enfaToDFA (ENFA sts alph del eps strt ac) = let nf = ENFA sts alph del eps strt 
     sortedStates = map sort $ subsequences sts
                                                               
 \end{code}
-
+\subsection{From regular expressions to $\epsilon$-NFAs}
 Now we implement transition from RegExp to ENFA.
 \begin{code}
 -- RegExp to ENFA

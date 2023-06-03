@@ -2,7 +2,9 @@
 
 This section describes our implementation of DFAs. As in the definition, a DFA consists
 of a tuple $(Q, \Sigma, \delta, q_{start}, A)$ representing the set of states, the alphabet, the transition 
-function, the start state and the accept states. Throughout, we choose to represent sets as lists. 
+function, the start state and the accept states. Throughout, we choose to represent sets as lists. The parameter
+of the DFA constructor stands for what object the states are. By default, we will use DFA-s with integer states, 
+but occasionally we will need ones that have lists of integers as their states. 
 
 \begin{code}
 {-# LANGUAGE FlexibleInstances #-}
