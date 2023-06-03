@@ -30,7 +30,7 @@ evaluate df st = all (`elem` alphabet df) st && -- captures that all element of 
                     stateArr q (x:xs) = stateArr (delta df x q) xs
 \end{code}
 
-We write an example DFA on the alphabet $\Sigma = \{0, 1\}$ computing the language of words starting with a $0$.
+We write an example DFA on the alphabet $\Sigma = \{0, 1\}$ accepting the language of words starting with a $0$.
 \begin{code}
 zeroStart:: DFA Int
 zeroStart = DFA [0,1,2] ['0', '1'] deltazero 0 [1] where

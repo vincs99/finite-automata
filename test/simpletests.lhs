@@ -26,13 +26,13 @@ main = do
     test2FA
     print "The reverse of the reverse accepts and rejects the same words:"
     test1ReverseDFA
-    print "The reverse of the reverse is isomorphic to the original"
+    print "The reverse of the reverse is isomorphic to the original:"
     test2ReverseDFA
     print "Minimize yields an automaton that accepts and rejects the same words:"
     test1MinimizeDFA
     print "Minimize doesn't yield more states:"
     test2MinimizeDFA
-    print "cutDFA dfa accepts and rejects the same as dfa:"
+    print "cutDFA DFA accepts and rejects the same as DFA:"
     test1CutDFA
     print "Powerset construction yields equivalent DFA for NFA:"
     test1PowNF
