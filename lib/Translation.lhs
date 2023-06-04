@@ -57,31 +57,23 @@ The translation from regular expressions to $\epsilon$-NFAs we implemented is do
 Let $r$ be any regular expression. Then there exists an $\epsilon$-NFA $N$ such that $\mathcal{L}(r)=\mathcal{L}(N)$.
 \end{theorem} 
 \begin{proof}
-Let $r$ be any regular expression on any alphabet $\Sigma$. We use structural induction on $r$.
+Let $r$ be any regular expression on any alphabet $\Sigma$. We use structural induction on $r$. 
 \begin{itemize}
 \item For $r:=\emptyset$, consider $\epsilon$-NFA $N=(\{q\},\Sigma,\emptyset,\emptyset,q,\emptyset)$. Recall that $\mathcal{L}(r)=emptyset$. $N$ rejects on every input as no path can end up in an accepting state, because there are no accepting states. Hence $\mathcal{L}(N)=\emptyset$.
 \item For $r:=\epsilon$, recall that $\mathcal{L}(r)=\{\epsilon\}$. Now consider $\epsilon$-NFA $N= (\{q\}, \emptyset, \emptyset, \emptyset, q, \{q\})$. On the empty input, $N$ ends in the start state, which is also an accepting state, so $N$ accepts. On any other input, $N$ rejects as no outgoing arrows are defined for the starting state. Hence $\mathcal{L}(N)=\{\epsilon\}$. 
 \item For $r:= a$ with $a\in\Sigma$, recall that $\mathcal{L}(r)=\{a\}$. Construct $N=(\{s,t\}, \Sigma, \{(s, a, t\},\emptyset,s,\{t\})$. Observe that $N$ rejects the empty string, as the initial state is not accepting. Because there is just one transition, if $N$ reads anything other than $a$, it will reject. If $N$ reads $a$ and anything after that, it will also reject. If it just reads $a$ and nothing more, $N$ will accept as $t$ is accepting. Hence $\mathcal{L}(N)=\{a\}$. 
 \end{itemize}
+Now suppose for the induction hypothesis \emph{(IH)} that there are automata $N_1=(S_1, \Sigma_1, \Delta_1, \epsilon_1, s_1, F_1)$ and $N_2=(S_2, \Sigma_2, \Delta_2, \epsilon_2, s_2, F_2)$, such that $\mathcal{L}(N_i)=\mathcal{L}(r_i)$ for $i\in\{1,2\}$. For reasons of space we will only discuss the union extensively. The full proof can be found in \cite{sipser13}. 
+\begin{itemize}
+\item Let $r := r_1 + r_2$. Now construct $N=(S_1\uplus S_2\uplus\{s_0\}, \Sigma_1\cup\Sigma_2, \Delta_1\uplus\Delta_2, \epsilon_1\uplus\epsilon_2 \cup\{(s_0,s_1),(s_0,s_2)\}, s_0, F_1\uplus F_2)$, where $s_0$ is a fresh state not in $S_1\uplus S_2$ and $\uplus$ denotes the disjoint union. Let $w\in \mathcal{L}(r_1)\cup\mathcal{L}(r_2)$. Then $w\in \mathcal{L}(r_i)$ for some $i\in \{1,2\}$. Hence by \emph{IH}, $w$ gets accepted by $N_i$, i.e.\ there is a run of $w$ that starts in $s_i$ and ends in some accepting state $f$ in $F_i$. But then there is also a run of $w$ on $N$ such that it ends in $f$, as there is an epsilon transition from $s_0$ to $s_i$. Hence $N$ also accepts. Conversely, if $w\notin \mathcal{L}(r_1)\cup\mathcal{L}(r_2)$, then both $N_1$ and $N_2$ have no successful runs on $w$, so it is easy to see that $N$ will also not have a successful run and thus rejects.
+\item For $r=r_1r_2$, construct $N$ by taking the  disjoint union of the states and transitions of $N_1$ and $N_2$. Let $s_1$ be the starting state, let $F_2$ be the accepting states. The crux is to add an epsilon arrow from every state in $F_1$ to $s_2$, ensuring that exactly the concatenation is recognised.
+\item For $r=r_1^*$, Let $N$ be $N_1$, but with additional $\epsilon$-arrows from the accepting states to the start state.
+\item For $r=r_1^+$ it is enough to observe that $r_1^+$ is equivalent to the concatenation of $r_1$ with $r_1^*$.
+\end{itemize}
 \end{proof}
 
-
-Now we implement the translation from RegExp to ENFA.
-\begin{code}
-regExpToENFA :: RegExp -> ENFA Int
-regExpToENFA Empty   = ENFA [1] [] (\_ _ -> []) [] 1 []
-regExpToENFA Epsilon = ENFA [1] [] (\_ _ -> []) [] 1 [1]
-regExpToENFA (R [])  = ENFA [1] [] (\_ _ -> []) [] 1 [1]
-regExpToENFA (R xs)  = ENFA [0..length xs] (nub xs) delta2 [] 0 [length xs] where
-  delta2 symbol state | state >= length xs || state < 0 = []
-                      | xs !! state == symbol = [state + 1]
-                      | otherwise = []
-regExpToENFA (Union r1 r2) = regExpToENFA r1 `unionENFA` makeDisjoint (regExpToENFA r1) (regExpToENFA r2)
-regExpToENFA (Star r) = starENFA (regExpToENFA r)
-regExpToENFA (Con r1 r2) = regExpToENFA r1 `concatENFA` makeDisjoint (regExpToENFA r1) (regExpToENFA r2)
-regExpToENFA (Plus r) = regExpToENFA r `concatENFA` makeDisjoint (regExpToENFA r) (starENFA (regExpToENFA r))
-
-
+ Our implementation of the translation follows the idea of the above proof. To implement taking the disjoint union, we first defined a function that takes two automata and outputs an automaton equivalent to the second argument, but disjoint from the first.
+ \begin{code}
 -- function that takes two ENFAs and outputs a relabeling of the second ENFA such that the states of both become disjoint
 makeDisjoint :: ENFA Int -> ENFA Int -> ENFA Int
 makeDisjoint n1 n2 = ENFA states' alphabet' delta' epT start' accept where
@@ -93,8 +85,11 @@ makeDisjoint n1 n2 = ENFA states' alphabet' delta' epT start' accept where
   epT = [(s + add, t + add) | (s,t) <- epTrans n2 ] 
   start' = startENF n2 + add
   accept = map (+ add) (acceptstateENF n2)
+\end{code}
+ 
+With this function, we can safely unionise and concatenate automata.
 
-
+\begin{code}
 unionENFA :: ENFA Int -> ENFA Int -> ENFA Int-- Use only if states are disjoint
 unionENFA n1 n2 = ENFA states'' alphabet2 delta'' epT start'' accept where
   states'' = start'' : statesENF n1 ++ statesENF n2
@@ -104,10 +99,6 @@ unionENFA n1 n2 = ENFA states'' alphabet2 delta'' epT start'' accept where
   start'' = maximum (statesENF n2 ++ statesENF n1) + 1 
   accept = acceptstateENF n1 ++ acceptstateENF n2
 
-starENFA :: ENFA Int -> ENFA Int
-starENFA n = ENFA (statesENF n) (alphabetENF n) (deltaENF n) ep (startENF n) (acceptstateENF n)  where
-  ep = epTrans n ++ [(startENF n, s)| s <- acceptstateENF n] ++ [(s, startENF n) | s <- acceptstateENF n]
-
 concatENFA :: ENFA Int -> ENFA Int -> ENFA Int -- Use only if states are disjoint again
 concatENFA n1 n2 = ENFA states4 alphabet'' delta3 epT start3 accept where
   states4 = statesENF n1 ++ statesENF n2
@@ -116,14 +107,116 @@ concatENFA n1 n2 = ENFA states4 alphabet'' delta3 epT start3 accept where
   epT = epTrans n1 ++ epTrans n2 ++ [(s, startENF n2) | s <- acceptstateENF n1]
   start3 = startENF n1
   accept = acceptstateENF n2
+
+starENFA :: ENFA Int -> ENFA Int
+starENFA n = ENFA (statesENF n) (alphabetENF n) (deltaENF n) ep (startENF n) (acceptstateENF n)  where
+  ep = epTrans n ++ [(startENF n, s)| s <- acceptstateENF n] ++ [(s, startENF n) | s <- acceptstateENF n]
+\end{code} 
+ 
+Combining the above then gets us the following function for translating regular expressions to $\epsilon$-NFAs. 
+ 
+\begin{code}
+regExpToENFA :: RegExp -> ENFA Int
+regExpToENFA Empty   = ENFA [1] [] (\_ _ -> []) [] 1 []
+regExpToENFA Epsilon = ENFA [1] [] (\_ _ -> []) [] 1 [1]
+regExpToENFA (R xs)  = ENFA [0..length xs] (nub xs) delta2 [] 0 [length xs] where
+  delta2 symbol state | state >= length xs || state < 0 = []
+                      | xs !! state == symbol = [state + 1]
+                      | otherwise = []
+regExpToENFA (Union r1 r2) = regExpToENFA r1 `unionENFA` makeDisjoint (regExpToENFA r1) (regExpToENFA r2)
+regExpToENFA (Star r) = starENFA (regExpToENFA r)
+regExpToENFA (Con r1 r2) = regExpToENFA r1 `concatENFA` makeDisjoint (regExpToENFA r1) (regExpToENFA r2)
+regExpToENFA (Plus r) = regExpToENFA r `concatENFA` makeDisjoint (regExpToENFA r) (starENFA (regExpToENFA r))
 \end{code}
 
-Finally, we turn to implement DFA to RegExp. AFL-notes version:
+To go from regular expressions to DFAs, one can simply use the above function and then run the powerset construction on the result.
 
-First we rename the states so that they are now integers $1\dots n$ where $n$ is the amount of states.
-For that we use the following function:
+\subsection{From DFAs to regular expressions}
+It is not immediately obvious that every DFA is also equivalent to some regular expression. However, there are several ways to convert DFAs into equivalent regular expressions. We will explain one way we also implemented here. The method is taken from \cite{AFLnotes}. There you can also find the full proof of the following theorem.
+
+\begin{theorem}
+For every DFA $D$, there is an equivalent regular expression $r$ such that $\mathcal{L}(D)=\mathcal{L}(r)$.
+\end{theorem}
+
+\begin{proof}
+Let $D=(S,\Sigma,\delta,s,F)$ be a DFA with $S = \{1,\dots,|S|\}$. 
+
+Next, we are going to define regular expressions $R_{ij}^{k}$ inductively for all $i,j\in S,\ k\leq |S|$. These expressions are going to correspond to all possible paths from $i$ to $j$, passing through intermediate no larger than $k$. For each pair of states $i,j$, let $A^{ij}:=\{a\ |\ \delta(i,a)=j\}$ be the set of labels on the transitions from $i$ to $j$.
+$$ R^0_{i,j}= \begin{cases}
+\bigcup A^{ij} &\text{if } i \neq j\\
+\epsilon \cup \bigcup A^{ij} &\text{if }i=j
+\end{cases}  $$
+$R^0_{ij}$ thus captures just the labels of direct transitions from $i$ to $j$, or if $i=j$, also $\epsilon$. For $k>0$, $R^{k}_{i j} := R^{k-1}_{ij}\cup(R^{k-1}_{ik}(R^{k-1}_{kk})^*R^{k-1}_{kj})$. This has the following meaning: a path from $i$ to $j$ passing through states no larger than $k$ can either:
+\begin{itemize}
+\item Not pass through $k$ at all. Then this path is covered by the regular expression $R^{k-1}_{ij}$, which is the first part of the union of $R^k_{ij}$.
+\item Pass through $k$ at least once. Then the path contains 3 segments.
+\begin{enumerate}
+\item The first segment goes from $i$ to $k$. The expression for these paths are covered by $R^{k-1}_{ik}$.
+\item The second part loops from $k$ to $k$, possibly 0 or many times. In any case, the expression is covered by $(R^{k-1}_{kk})^*$.
+\item The last segment goes from $k$ to $j$. This part is covered by $R^{k-1}_{kj}$.
+\end{enumerate}
+Hence the whole path is covered by the concatenation of those three segments, which is exactly the second part of $R^k_{ij}$.
+\end{itemize}
+Now let $n$ be the starting state of $D$. The regular expression covering all paths from $n$ to accepting states is thus $\bigcup \{ R^{|S|}_{nf}\ |\ f \in F\}$. 
+\end{proof}
+
+Our implementation of the translation follows the method of the above proof, with two extra steps. As the expressions output by the procedure can become quite large, we first minimize the DFA to an equivalent minimal DFA. After the whole procedure we use the \texttt{simplify} function again, which was defined in the section on regular expressions.
+
+
+We use an implementation of Brzozowski's algorithm for minimising DFA's \cite{Brzozowski1962CanonicalRE}. We state without proof that the result of first reversing\footnote{By reversing we mean that arrows from $s$ to $t$ become arrows from $t$ to $s$, acceptstates become starting states and vice versa. In the case of multiple accepting states, we transform to an $\epsilon$-NFA with one accepting state first, in order to end up with one start state in the reversed automaton.}, then determinising and trimming an automaton twice yields an equivalent minimal automaton.
+
+\begin{proposition}
+Let $D=(S, \Sigma, \delta, s, F)$ be a DFA. Then there is an equivalent minimal DFA $D'$, which is obtained by applying the following proces twice:
+\begin{itemize}
+\item  reverse the automaton, 
+\item determinise the result with the powerset construction, trimming all unreachable states in the process.
+\end{itemize} 
+\end{proposition}
+
+The idea behind the algorithm is as follows. There can be three types of redundancy in an automaton.
+\begin{enumerate}
+\item States that cannot reach the goal.
+\item States that cannot be reached by the starting state.
+\item States that are indistinguishable from eachother.
+\end{enumerate}
+
+The first type is covered by reversing and then trimming. The second is covered by the second trimming. The third is a result of the application of the power set construction: if states $s$ and $t$ are indistinguishable, then the power set construction will ensure that they end up in the same power states.
+
+
+In the code we also apply \texttt{cutDFA} before the process, because the implementation of the power set construction is not optimised. We furthermore use a small variation of the original construction, by ensuring that the newly added single accepting state will not show up in the resulting DFA. 
 \begin{code}
+minimizeDFA :: Ord a => DFA a -> DFA [Int]
+minimizeDFA = reverseDFA . reverseDFA
 
+reverseDFA :: Ord a => DFA a -> DFA [Int]
+reverseDFA d = enfaToDFA' $ ENFA sts alph delt ep st acc where
+  e = singleAccept $ cutDFA d
+  sts = statesENF e
+  alph = alphabetENF e
+  delt sym s = [t | t <- statesENF e, s `elem` deltaENF e sym t] 
+  ep = [(s, t) | (t,s) <- epTrans e ]
+  st = head $ acceptstateENF e
+  acc = [startENF e]
+  enfaToDFA' nf@(ENFA sts' alph' del eps strt ac) = 
+    cutDFA $ DFA sortedStates alph' del' (rtClose nf (sort [ t | (s, t) <- eps, s == strt])) [st' | st' <- sortedStates,  intersect st' ac /= []] where
+      del' sy ls = rtClose nf ( unionL [del sy l | l <- ls] )
+      sortedStates = map sort $ subsequences sts'
+
+singleAccept :: Ord a => DFA a -> ENFA Int
+singleAccept d = ENFA sts alph delt ep st acc where 
+  d' = makeIntDFA d 
+  newAccept = maximum (states d') + 1
+  sts = newAccept : states d'
+  alph = alphabet d'
+  delt sym t | t == newAccept = []
+             | otherwise =  [delta d' sym t]
+  ep = [(f, newAccept) | f <- acceptstate d']
+  st = start d'
+  acc = [newAccept]
+\end{code}
+
+The renaming of the states is done in the following way:
+\begin{code}
 makeIntDFA :: (Eq a, Ord a) => DFA a -> DFA Int
 makeIntDFA dfa = DFA sts alph delt strt acceptst 
   where sts = [1..length (states dfa)]
@@ -132,62 +225,32 @@ makeIntDFA dfa = DFA sts alph delt strt acceptst
         strt = indX (start dfa)
         acceptst = [indX s | s <- acceptstate dfa]
         indX s = fromJust (elemIndex s (states dfa)) + 1
+\end{code}
 
+
+Putting everything together, the rest of the algorithm is found here.
+\begin{code}
 -- simplify to make the result a bit more readable 
 dfaToRegExp :: Ord a => DFA a -> RegExp
 dfaToRegExp dfa = simplify $ regExpUnion [rijk dfaInt (start dfaInt) f (length $ states dfaInt) | f <- acceptstate dfaInt ]
   where dfaInt = (makeIntDFA . minimizeDFA) dfa
 
--- Here is the magic from the notes:
+-- rijk dfa outputs the regular expression covering paths from i to j without passing through intermediate states larger than k
 rijk :: DFA Int -> Int -> Int -> Int -> RegExp
-rijk dfa i j 0 | i == j  = regExpUnion $ Epsilon : labels
-               | null labels = Empty
-               | length labels == 1 = head labels
-               | otherwise = foldr Union (head labels) (tail labels)          
+rijk dfa i j 0 | i == j    = simplify $ regExpUnion (Epsilon : labels)
+               | otherwise = simplify $ foldr Union Empty labels        
   where labels =  [R [x] | x <- alphabet dfa, delta dfa x i == j]
-rijk dfa i j k = Union (rijk dfa i j (k-1)) (Con (rijk dfa i k (k-1)) (Con (Star $ rijk dfa k k (k-1)) (rijk dfa k j (k-1))))
-
+rijk dfa i j k = Union (rijk dfa i j (k-1)) 
+  (Con (rijk dfa i k (k-1)) 
+  (Con (Star $ rijk dfa k k (k-1)) 
+  (rijk dfa k j (k-1))))
 \end{code}
 
 
-Brzozowski's algorithm for minimising DFA's \cite{Brzozowski1962CanonicalRE}
+One nice property of minimal DFAs is that they are unique for each language (up to isomorphism). This transforms checking whether two DFAs have the same language to a graph isomorphism problem on the minimal equivalents of said DFAs. That is done by the following function. 
 
 \begin{code}
-
-
-
-minimizeDFA :: Ord a => DFA a -> DFA [Int]
-minimizeDFA df | all (`elem` acceptstate df) (reachables df)  = DFA [[0]] (alphabet df) (const (const [0])) [0] [[0]] 
-               |  otherwise = (reverseDFA . reverseDFA) df 
-
-  
-reverseDFA :: Ord a => DFA a -> DFA [Int]
-reverseDFA d = enfaToDFA' $ ENFA sts alph delt ep st acc where
-    e = singleAccept $ cutDFA d
-    sts = statesENF e
-    alph = alphabetENF e
-    delt sym s = [t | t <- statesENF e, s `elem` deltaENF e sym t] 
-    ep = [(s, t) | (t,s) <- epTrans e ]
-    st = head $ acceptstateENF e
-    acc = [startENF e]
-    enfaToDFA' nf@(ENFA sts' alph' del eps strt ac) = 
-      cutDFA $ DFA sortedStates alph' del' (rtClose nf (sort [ t | (s, t) <- eps, s == strt])) [st' | st' <- sortedStates,  intersect st' ac /= []] where
-      del' sy ls = rtClose nf ( unionL [del sy l | l <- ls] )
-      sortedStates = map sort $ subsequences sts'
-  
-singleAccept :: Ord a => DFA a -> ENFA Int
-singleAccept d = ENFA sts alph delt ep st acc where 
-    d' = makeIntDFA d 
-    newAccept = maximum (states d') + 1
-    sts = newAccept : states d'
-    alph = alphabet d'
-    delt sym t | t == newAccept = []
-               | otherwise =  [delta d' sym t]
-    ep = [(f, newAccept) | f <- acceptstate d']
-    st = start d'
-    acc = [newAccept]
-
--- Checks whether the reachable states of two DFA's are Isomorphic
+-- Checks whether two DFAs are equivalent
 brzozowski :: (Ord a, Ord b) => DFA a -> DFA b -> Bool
 brzozowski d d' = alphabet d == alphabet d' && 
   (null (acceptstate m) && null (acceptstate m')) ||

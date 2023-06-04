@@ -33,7 +33,7 @@ These operations naturally give rise to \emph{regular expressions}. A regular ex
 	\end{itemize}
 	If $r,r' \in \mathcal{R}$, then:
 	\begin{itemize}
-		\item $r+r'\in R$, also written as $r|r'$, corresponding to $\mathcal{L}(r)\cup\mathcal{L}(r')$.
+		\item $r+r'\in R$, also written as $r|r'$ or $r\cup r'$, corresponding to $\mathcal{L}(r)\cup\mathcal{L}(r')$.
 		\item $rr' \in\mathcal{R}$ with $\mathcal{L}(rr')= \mathcal{L}(r)\circ\mathcal{L}(r')$.
 		\item $r^*$ corresponding to $\mathcal{L}(r)^*$.
 		\item $r^+$ with $\mathcal{L}(r^+)^+= \mathcal{L}(r)^+$.
@@ -68,7 +68,7 @@ The computation of a word $w$ on DFA $D=(S,\Sigma, \delta,s_0,F)$ will goes as f
 We have three remarks about this procedure:
 \begin{itemize}
 \item It is up for debate if a DFA rejects or fails when it reads a symbol that is not in the alphabet. Our implementation will reject for a more user-friendly experience. 
-\item An NFA could end up in multiple states when reading a symbol. The idea is that the machine will non-deterministically choose to which state to go. If one possible path of computation ends up in an accepting state, the machine will accept. Note that some paths may end due to the machine reading a symbol $a$ in a state $s$ such that there is no $t$ with $(s,a,t)\in \Delta$. In that case this path will count as not ending up in an accepting state.
+\item An NFA could end up in multiple states when reading a symbol. The idea is that the machine will non-deterministically choose to which state to go. If one possible path of computation on a word (also known as a \emph{run} of $w$) ends up in an accepting state, the machine will accept. The run is then called \emph{successful}). Note that some paths may end due to the machine reading a symbol $a$ in some state $s$ such that there is no $t$ with $(s,a,t)\in \Delta$. In that case this path will count as not ending up in an accepting state.
 \item An $\epsilon$-NFA extends the notion of an NFA by allowing for transitioning states on the empty symbol, namely $\epsilon$. Before reading a symbol, the currently visited states need to be updated by all possible $\epsilon$-transitions. This is done by taking the reflexive and transitive closure of the $\epsilon$-relation of states. 
 \end{itemize}
 

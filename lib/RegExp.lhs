@@ -1,17 +1,15 @@
 \section{Regular expressions}\label{sec:RegExp}
+
 In this section, we discuss the implementation of regular expressions, as well as a small toolbox to manipulate them. 
 
 
-\begin{code}
- 
+\begin{code} 
 module RegExp where
 import DFA
-import NFA()
-import ENFA()
 import Test.QuickCheck
 \end{code}
 
-\subsection{Definition}
+\subsection{Data type}
 
 Recall that a regular expression is defined to be either empty, the emptystring, a single symbol, the union or concatenation of two expressions, or the closure of a language (with or without the emptystring). The datatype \texttt{RegExp} we used closely follows this definition, but also allows for some more flexibility.
 
@@ -30,7 +28,7 @@ regExpUnion :: [RegExp] -> RegExp
 regExpUnion = simplify . foldr Union Empty   
 \end{code}
 
-\subsection{Pretty printing and simplifying}
+\subsection{Pretty printing and simplifying}\label{simplify}
 As larger expressions tend to become unreadable, we implemented a function for pretty showing and pretty printing regular expressions.
 
 \begin{code}
