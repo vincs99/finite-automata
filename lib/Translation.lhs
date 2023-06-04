@@ -12,7 +12,7 @@ import ENFA
 import RegExp
 import Data.Maybe (fromJust)
 \end{code}
-\subsection{The Powerset construction}
+\subsection{The Powerset construction}\label{powerset}
 As stated earlier, ($\epsilon$)-NFAs and DFA-s are equivalent in their computing power. This fact is shown by constructing an equivalent DFA from an ($\epsilon$) - NFA. This procedure is called the powerset construction, which we detail here.  
 
 \begin{definition}{(Powerset construction - NFA-s)}

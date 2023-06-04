@@ -1,7 +1,7 @@
 \section{Regular expressions}\label{sec:RegExp}
-Here we implement regular expressions and a toolset to generate words that the regexp accepts.
+In this section, we discuss the implementation of regular expressions, as well as a small toolbox to manipulate them. 
 
-\ignore{
+
 \begin{code}
  
 module RegExp where
@@ -10,19 +10,30 @@ import NFA()
 import ENFA()
 import Test.QuickCheck
 \end{code}
-}
 
+\subsection{Definition}
 
+Recall that a regular expression is defined to be either empty, the emptystring, a single symbol, the union or concatenation of two expressions, or the closure of a language (with or without the emptystring). The datatype \texttt{RegExp} we used closely follows this definition, but also allows for some more flexibility.
 
 \begin{code}
-data RegExp = Empty | Epsilon | R [Symbol] | Union RegExp RegExp | Star RegExp | Con RegExp RegExp | Plus RegExp
+data RegExp = Empty | Epsilon | R [Symbol] | Union RegExp RegExp | Con RegExp RegExp | Star RegExp | Plus RegExp
   deriving (Show, Eq)
+\end{code}
+
+The main difference between \texttt{RegExp} and regular expressions, is in the base case for single symbols in the original definition. We chose to allow a list of symbol to increase user-friendliness. This means that instead of \texttt{Con (R "a") (R "b")}, one can write \texttt{R "ab"} to denote the same expression. \texttt{R []} is also equivalent to \texttt{Epsilon}. 
 
 
+For convenience, we also added a function that takes a list of regular expressions and outputs the expression corresponding to the union of all its members.
+
+\begin{code}
 regExpUnion :: [RegExp] -> RegExp
 regExpUnion = simplify . foldr Union Empty   
+\end{code}
 
+\subsection{Printing}
+As larger expressions tend to become unreadable, we implemented a function for pretty showing and pretty printing regular expressions.
 
+\begin{code}
 pRegExp :: RegExp -> String
 pRegExp Empty = ""
 pRegExp Epsilon = "R e"
@@ -37,8 +48,12 @@ ppRegExp :: RegExp -> IO ()
 ppRegExp = print . pRegExp
 \end{code}
 
-We create an Arbitrary instance for RegExp to be able to generate regular expressions. 
-Note we exclude the Empty expression from the generation, as we cannot generate words from that.
+Here is an example to illustrate the improvement on the readability.\\
+\texttt{ppRegExp (Con (Union (Con (R "5") (R"3")) (R [])) (Star (R "19")))} yields\\
+ \texttt{"("53"|R e)("19")*"}.
+
+\subsection{Arbitrary Generation}
+We create an Arbitrary instance for RegExp in order to be able to generate regular expressions. The main purpose for this is testing of properties. Note that we exclude the Empty expression from the generation, as empty expressions cannot generate words. The parameter for \texttt{sized} decreases swiftly in order to keep the generated expressions of a reasonable and readable size. This is necessary for feasible runtimes in the translation process from regular expressions to DFAs later on.
 \begin{code}
 instance Arbitrary RegExp where
   arbitrary = sized randomReg where
