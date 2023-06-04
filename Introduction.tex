@@ -6,11 +6,11 @@ This structure is also captured by regular expressions.
 
 In this report we discuss our Haskell-implementation of finite state automata and regular expressions.
 In particular, we implemented deterministic finite state automata, non-deterministic finite state automata and regular expressions.
-The goal is to make the equivalence of finite state automata and regular languages explicit, by various translation functions. 
-Regular expressions are suitable for generating words from a regular language and in turn finite automata are suitable for evaluating if 
-a word is in the language. Our implementation enables us to combine these features. Given a regular expression, we can compute another one that generates
-the complement language using finite state automata and given a regular expression, we can generate words that it accepts using regular expressions. Furthermore,
-we provide a toolkit that determines the minimal equivalent DFA to a DFA and checks isomorphism of DFA-s.
+The goal is to make the equivalence of finite state automata and regular languages explicit by various translation functions. 
+Regular expressions are suitable for generating words from a regular language, but finite automata are more suitable for determining whether 
+a word is in its language. Our implementation enables combining these features. For example, given a regular expression, we can compute another one that generates
+the complement language using finite state automata. Moreover, given an automaton, we can generate words that it accepts using regular expressions. Furthermore,
+we provide a toolkit that determines the minimal equivalent DFA to a DFA and checks isomorphism of DFAs.
 
 Our report is structured as follows. In Section \ref{theory} we give a brief introduction to the theory of regular languages and point towards more detailed references. 
 In Sections \ref{sec:DFA} - \ref{sec:RegExp} we discuss our implementation of finite state automata and regular expressions. In Section \ref{sec:Trans} we turn to the

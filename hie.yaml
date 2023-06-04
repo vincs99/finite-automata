@@ -10,4 +10,4 @@ cradle:
       component: "finite-automata:exe:myprogram"
 
     - path: "./test"
-      component: "finite-automata:test:simpletests"
+      component: "finite-automata:test:tests"

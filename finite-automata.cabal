@@ -45,9 +45,9 @@ executable myprogram
     , random
   default-language: Haskell2010
 
-test-suite simpletests
+test-suite tests
   type: exitcode-stdio-1.0
-  main-is: simpletests.lhs
+  main-is: tests.lhs
   other-modules:
       Paths_finite_automata
   hs-source-dirs:

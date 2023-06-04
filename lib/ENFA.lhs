@@ -1,9 +1,11 @@
-\section{Implementation of $\epsilon$-NFA-s}\label{sec:ENFA}
+\section{Implementation of $\epsilon$-NFAs}\label{sec:ENFA}
 
-Here we modify our implementation of NFA-s to account for epsilon transitions. We chose to represent
-$\epsilon$ transitions via a list of tuples of $\epsilon$-related states. This is for convenience under
-taking $\epsilon$-closure and to highlight the different role $\epsilon$ transitions take from standard symbol
-translation. The show instance is similar to DFA-s, with the $\epsilon$-relations also listed, and is omitted here.
+Here we modify our implementation of NFAs to account for epsilon transitions. Even though for every $\epsilon$-NFA there is an equivalent NFA, it is useful to have these transitions for representational purposes of some automata, and for understandability of some constructions. 
+
+\subsection{Data type and basics}
+We chose to represent
+$\epsilon$ transitions via a list of tuples of $\epsilon$-related states. This is for convenience when
+taking the $\epsilon$-closure and to highlight the different role $\epsilon$-transitions have compared to standard transitions. The \texttt{show} instance is similar to its DFA counterpart, with the $\epsilon$-relations also listed.
 \begin{code}
 {-# LANGUAGE FlexibleInstances #-}
 module ENFA where
@@ -23,8 +25,7 @@ instance Show a => Show (ENFA a) where
       = "ENFA" ++ "("++ show sts ++ "," ++ show alph ++ "," ++ show1 del ++ "," ++ show eps ++ "," ++ show strt ++ "," ++ show acc ++")" where
       show1 f = show ["d" ++ "(" ++ show sym ++ "," ++ show st ++ ")" ++ " = " ++ show (f sym st) | sym <- alph, st <- sts ]
 \end{code}
-To define $\epsilon$-closure, we need some machinery to calculate reflexive and transitive closures. This work is 
-inspired by \cite{CS:30073}.
+To define $\epsilon$-closure, we need some machinery to calculate the reflexive and transitive closure of some relation. This work is inspired by \cite{CS:30073}.
 \begin{code}
 trClose :: Eq a => [(a, a)] -> [(a, a)]
 trClose closure 
@@ -40,7 +41,7 @@ rtClose:: (Eq a, Ord a) => ENFA a -> [a] -> [a]
 rtClose nf qs = sort (unionL [[p | p <- statesENF nf , (q, p) `elem` trClose rcl ] | q<- qs] ) where
                                             rcl = refClose (statesENF nf) (epTrans nf)
 \end{code}
-We use this to modify the evaluation function to account for $\epsilon$-transitions.
+We use the above to modify the evaluation function to account for $\epsilon$-transitions.
 \begin{code}
 evaluateENF:: (Eq a, Ord a) => ENFA a -> String -> Bool
 evaluateENF nf st = all (`elem` alphabetENF nf) st && -- captures elements of string in alphabet
@@ -51,7 +52,9 @@ evaluateENF nf st = all (`elem` alphabetENF nf) st && -- captures elements of st
                  unionL ( [rtClose nf (stateArrENF' (unionL (map (deltaENF nf x) (rtClose nf [q]))) xs ) | q <-qs ])
   -- this first does transitive closure on the input list, then transitive closure on output list and takes union
 \end{code}
-We make ENFA -s instance of Arbitrary by slightly modifying the relevant code for NFA-s to the effect of adding 
+
+\subsection{Arbitrary Generation}
+We make ENFAs instance of \texttt{Arbitrary} by slightly modifying the relevant code for NFAs, to the effect of adding 
 an arbitrary $\epsilon$-relation list.
 \begin{code}
 instance Arbitrary (ENFA Int) where

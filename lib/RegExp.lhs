@@ -2,18 +2,15 @@
 
 In this section, we discuss the implementation of regular expressions, as well as a small toolbox to manipulate them. 
 
-
-\begin{code} 
-module RegExp where
-import DFA
-import Test.QuickCheck
-\end{code}
-
-\subsection{Data type}
+\subsection{Data type and basics}
 
 Recall that a regular expression is defined to be either empty, the emptystring, a single symbol, the union or concatenation of two expressions, or the closure of a language (with or without the emptystring). The datatype \texttt{RegExp} we used closely follows this definition, but also allows for some more flexibility.
 
 \begin{code}
+module RegExp where
+import DFA
+import Test.QuickCheck
+
 data RegExp = Empty | Epsilon | R [Symbol] | Union RegExp RegExp | Con RegExp RegExp | Star RegExp | Plus RegExp
   deriving (Show, Eq)
 \end{code}
@@ -77,7 +74,7 @@ simplify r | r == simplify' r = r
 \end{code}
 
 \subsection{Arbitrary generation of regular expressions}
-We create an Arbitrary instance for RegExp in order to be able to generate regular expressions. The main purpose for this is testing of properties. Note that we exclude the Empty expression from the generation, as empty expressions cannot generate words. The parameter for \texttt{sized} decreases swiftly in order to keep the generated expressions of a reasonable and readable size. This is necessary for feasible runtimes in the translation process from regular expressions to DFAs later on.
+We create an \texttt{Arbitrary} instance for \texttt{RegExp} in order to generate regular expressions. The main purpose for this is testing of properties. For this reason we exclude the \texttt{Empty} expression from the generation, as empty expressions cannot generate words. The parameter for \texttt{sized} decreases rapidly in order to keep the generated expressions of a reasonable and readable size. This is necessary for feasible runtimes in the translation process from expressions to DFAs later on.
 \begin{code}
 instance Arbitrary RegExp where
   arbitrary = sized randomReg where

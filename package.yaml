@@ -23,8 +23,8 @@ executables:
       - finite-automata
 
 tests:
-  simpletests:
-    main: simpletests.lhs
+  tests:
+    main: tests.lhs
     source-dirs: test
     dependencies:
       - finite-automata

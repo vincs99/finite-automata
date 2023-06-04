@@ -1,5 +1,16 @@
 
-\section{Conclusion}\label{sec:Conclusion}
+\section{Conclusion and future work}\label{sec:Conclusion}
+In this report we introduced some background theory on formal languages and automata. Then we discussed our implementation of DFAs, ($\epsilon$-)NFAs and regular expressions. Furthermore, we successfully implemented translations between these FSAs and expressions. We designed and defined test functions to test certain properties of our implementation and of automata and regular expressions in general. All of our implementation seems to behave as expected. We thus created a tool that can be used to gain some understanding about automata and regular languages.
 
-Our primary sources of reference are \cite{AFLnotes} and \cite{sipser13}. 
+However, the program could be optimised more, and some more features can be added to improve functionality and user-experience.
+
+Regarding optimisations, one major point is the exponential runtime and space that some algorithms now take. Even though taking the power set is exponential by definition, the power set construction can be made more efficient by only ever considering reachable states in the process, not just after. This would not only have a positive impact on the construction itself, but also on the Brzozowski minimisation. 
+
+Furthermore, a better algorithm to simplify regular expressions would be useful. Especially because with better simplifications, one can test the program more extensively; constructing a regular expression from a DFA and then calculating the corresponding DFA again now often takes very long.
+
+In the isomorphism checker, the implementation could also be better, as now it is doing a lot of the same work more than once.
+
+
+Regarding future features, it would be ideal if the transition systems could be output as (the picture of) a graph. This would make it easier to work with the automata corresponding to regular expressions for example. The addition of a parser for these regular expressions would also enhance the user experience. 
+
 

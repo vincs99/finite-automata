@@ -1,9 +1,8 @@
-
-\section{Simple Tests}
+\section{Tests}
 \label{sec:simpletests}
 
 This section discusses our testing suite. We import all modules and test different aspects of the code 
-via several QuickCheck queries. 
+via several \texttt{QuickCheck} queries. 
 
 
 \begin{code}
@@ -26,7 +25,7 @@ main = do
     test2FA
     print "The reverse of the reverse accepts and rejects the same words:"
     test1ReverseDFA
-    print "The reverse of the reverse is isomorphic to the original:"
+    print "The reverse of the reverse is equivalent to the original:"
     test2ReverseDFA
     print "Minimize yields an automaton that accepts and rejects the same words:"
     test1MinimizeDFA
@@ -53,8 +52,8 @@ main = do
     print "Minimised automata generated from a RegExp accept words from said RegExp:"
     testMinimizeMore
 \end{code}
-First we start by defining some example NFA-s and $\epsilon$-NFA-s similar to the previously seen DFA 
-called zeroStart, that accept the same language. We also add a further example for a DFA. 
+First we start by defining some example NFAs and $\epsilon$-NFAs similar to the previously seen DFA 
+called \texttt{zeroStart}, that accept the same language. We also add a further example for a DFA. 
 \begin{code}
 zeroStartNF:: NFA Int
 zeroStartNF = NFA [0,1,2, 3] ['0', '1'] deltazeroNF 0 [1] where
@@ -104,11 +103,11 @@ test2FA = quickCheck (forAll (generateString (Union Epsilon (Con (R "1") (Star (
                         (\w -> not (zeroStart `evaluate` w) && not (zeroStartNF `evaluateNF` w)  &&  not(
                         zeroStartENF `evaluateENF` w )))
 \end{code}
-Here we test the toolkit for obtaining the minimal DFA for a language. Test if the reverse of the reverse DFA 
-accept the same words as the original DFA. We go further and use the brozowski function
-to test if they are isomorphic.  We then test if a DFA and its corresponding minimal 
+Here we test the toolkit for obtaining the minimal DFA for a language. We test if the reverse of the reverse DFA 
+accept the same words as the original DFA. We go further and use the \texttt{brozowski} function
+to test whether they hare equivalent.  We then test if a DFA and its corresponding minimal 
 DFA accept the same words. We finish by testing that the minimal DFA has always at most
-as many states as the original DFA. We also test the cutDFA function. We check if the 
+as many states as the original DFA. We also test the \texttt{cutDFA} function. We check if the 
 DFA after cutting accepts the same words as the original DFA. We generate arbitrary DFAs for these. 
 \begin{code}
 test1ReverseDFA :: IO ()
@@ -135,7 +134,7 @@ test1PowENF = quickCheck (forAll (generateString (Union (R "0") (R "1")))
                             (\w (enf:: ENFA Int) -> evaluateENF enf w == evaluate (enfaToDFA enf) w) )
 \end{code}
 
-We now test the translation from DFA to RegExp. We check whether a DFA accepts words generated from
+We now test the translation from DFA to \texttt{RegExp}. We check whether a DFA accepts words generated from
 the corresponding regular expression and that it does not accept words generated from the regular expression corresponding to 
 the DFA with complement accept states. We generate arbitrary DFAs for this. 
 
@@ -149,9 +148,8 @@ test2DFtoReg = quickCheck ( \ (df:: DFA Int) -> if dfaToRegExp (flipDFA df) /= E
                 forAll (generateString (dfaToRegExp (flipDFA df))) (not . evaluate df ) else property True)
 \end{code}
 
-We now test the translation from RegExp to $\epsilon$-NFA. We check whether the $\epsilon$-NFA corresponding
-to a regular expression accepts words generated from the the expression. We generate arbitrary regular expressions
- for this.
+We now test the translation from \texttt{RegExp} to $\epsilon$-NFA. We check whether the $\epsilon$-NFA corresponding
+to a regular expression accepts words generated from the expression. We generate arbitrary regular expressions for this.
 
 \begin{code}
 test1RegtoENF :: IO ()
@@ -183,38 +181,4 @@ testMinimizeMore = quickCheck (\r -> forAll (generateString r) (\w -> (minimizeD
 
 \end{code}
 
-The output of the test suite is as follows.
-\begin{showCode}
-"ZeroStart accepts words starting with 0, for DFA, NFA and ENFA version:"
-+++ OK, passed 100 tests.
-"ZeroStart does not accept other words, for DFA, NFA and ENFA version:"
-+++ OK, passed 100 tests.
-"The reverse of the reverse accepts and rejects the same words:"
-+++ OK, passed 100 tests.
-"The reverse of the reverse is isomorphic to the original"
-+++ OK, passed 100 tests.
-"Minimize yields an automaton that accepts and rejects the same words:"
-+++ OK, passed 100 tests.
-"Minimize doesn't yield more states:"
-+++ OK, passed 100 tests.
-"cutDFA dfa accepts and rejects the same as dfa:"
-+++ OK, passed 100 tests.
-"Powerset construction yields equivalent DFA for NFA:"
-+++ OK, passed 100 tests.
-"Powerset construction yields equivalent DFA for ENFA:"
-+++ OK, passed 100 tests.
-"DFA accepts words generated by the corresponding RegExp:"
-+++ OK, passed 100 tests.
-"DFA does not accept words generated by the RegExp corresponding to the complement DFA:"
-+++ OK, passed 100 tests.
-"ENFA corresponding to RegExp accepts words generated from RegExp:"
-+++ OK, passed 100 tests.
-"Composition of translations yields equivalent DFA for DFA:"
-+++ OK, passed 100 tests.
-"Complement RegExps don't generate the same word:"
-+++ OK, passed 100 tests.
-"Complement on different RegExp:"
-+++ OK, passed 100 tests.
-"Minimised automata generated from a RegExp accept words from said RegExp:"
-+++ OK, passed 100 tests.
-\end{showCode}
+All tests run in a reasonable amount of time and are passed.
