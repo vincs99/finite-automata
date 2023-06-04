@@ -53,7 +53,7 @@ evaluateENF nf st = all (`elem` alphabetENF nf) st && -- captures elements of st
   -- this first does transitive closure on the input list, then transitive closure on output list and takes union
 \end{code}
 
-\subsection{Arbitrary Generation}
+
 We make ENFAs instance of \texttt{Arbitrary} by slightly modifying the relevant code for NFAs, to the effect of adding 
 an arbitrary $\epsilon$-relation list.
 \begin{code}

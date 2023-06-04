@@ -177,7 +177,7 @@ The idea behind the algorithm is as follows. There can be three types of redunda
 \begin{enumerate}
 \item States that cannot reach the goal.
 \item States that cannot be reached by the starting state.
-\item States that are indistinguishable from eachother.
+\item States that are indistinguishable from each other.
 \end{enumerate}
 
 The first type is covered by reversing and then trimming. The second is covered by the second trimming. The third is a result of the application of the power set construction: if states $s$ and $t$ are indistinguishable, then the power set construction will ensure that they end up in the same power states.

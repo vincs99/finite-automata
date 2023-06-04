@@ -41,7 +41,7 @@ evaluateNF nf st = all (`elem` alphabetNF nf) st && -- captures elements of stri
                 stateArrNF'  [] _ = []
                 stateArrNF'  qs (x:xs) = unionL [stateArrNF' (deltaNF nf x q) xs | q <- qs] --recursion on string               
 \end{code}
-
+\subsection{Arbitrary Generation}
 We implemented the NFA-instance for \texttt{Arbitrary} by slightly modifying the relevant code for DFAs. The difference is that the arbitrary transition functions we generate here output lists as values.
 \begin{code}
 -- recursively make a valuation function for these worlds:
