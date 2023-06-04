@@ -15,7 +15,6 @@ build-type:     Simple
 library
   exposed-modules:
       DFA
-      DFA_raw
       ENFA
       NFA
       RegExp
